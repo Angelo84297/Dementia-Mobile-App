@@ -1,10 +1,14 @@
 from sqlmodel import SQLModel, Session, create_engine
 import models # needed so create_all() knows which tables to create
+import os
+from dotenv import load_dotenv
 
-postgresql_url = "postgresql://postgres:NnzEtTj:u0,g@localhost:5432/supporting_others_db" 
+load_dotenv()  # read .env file
+
+database_url = os.getenv("database_url")   # retrieves password
 
 # object in charge of communicating with the database. Only one needed for the whole application. 
-engine = create_engine(postgresql_url, echo=True)  # with echo all the sql statements are printed
+engine = create_engine(database_url, echo=True)  # with echo all the sql statements are printed
 
 
 def create_db_and_tables():

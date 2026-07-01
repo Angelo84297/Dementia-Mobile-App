@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 import psycopg2 
 from psycopg2.extras import RealDictCursor
-from db import postgresql_url, create_db_and_tables, get_session
+from db import database_url, create_db_and_tables, get_session
 from sqlmodel import select, Session
 from models import User
 
@@ -10,7 +10,7 @@ app = FastAPI()
 
 def get_db_connection(): 
     try: 
-        conn = psycopg2.connect(postgresql_url, cursor_factory=RealDictCursor)  # with RealDictCursor each row is returned as a dictionary
+        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)  # with RealDictCursor each row is returned as a dictionary
         return conn 
     except Exception as e:
         print("Connection to the database failed. Error:", e)
@@ -30,7 +30,7 @@ async def root():    # asynch is used to handle network requests
 @app.get("/test-db-connection")
 def test_db(): 
     try: 
-        conn = psycopg2.connect(postgresql_url)
+        conn = psycopg2.connect(database_url)
         conn.close()
         return {"status" : "Connection was successful"}
     # catch the specific exception and print it. 
