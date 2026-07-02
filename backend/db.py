@@ -5,14 +5,15 @@ from dotenv import load_dotenv
 
 load_dotenv()  # read .env file
 
-database_url = os.getenv("database_url")   # retrieves password
+database_url = os.getenv("database_url")   # retrieve url from env file
+
 
 # object in charge of communicating with the database. Only one needed for the whole application. 
 engine = create_engine(database_url, echo=True)  # with echo all the sql statements are printed
 
 
 def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)  # takes the engine and uses it to create all tables in metadata
+    SQLModel.metadata.create_all(engine)  # take the engine and use it to create all tables in metadata
 
 """
 sessions are needed to manage interactions with the database (e.g. queries, insert data)

@@ -13,7 +13,7 @@ class User(SQLModel, table=True):  # table=True tells SQLModel this represents a
 
 class Patient(SQLModel, table=True): 
     patient_id: int | None = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.user_id")
+    user_id: int = Field(foreign_key="users.user_id")
     age: int | None = None
 
 class HealthRecord(SQLModel, table=True): 
@@ -25,3 +25,4 @@ class HealthRecord(SQLModel, table=True):
     sleep_hours: float | None = None
     resting_heart_rate: int | None = None
     water_cups: int | None = None
+    
