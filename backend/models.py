@@ -1,5 +1,6 @@
 from sqlmodel import Field, SQLModel
 from datetime import datetime, timezone
+from pydantic import BaseModel 
 
 
 class User(SQLModel, table=True):  # table=True tells SQLModel this represents a table. It is registered in the metadata object
@@ -27,7 +28,14 @@ class HealthRecord(SQLModel, table=True):
     water_cups: int | None = None
 
 class Mood(SQLModel, table=True): 
-    mood_id: int | None = Field(default=None, primary_key=True)
+    mood_id: int | None = Field(default=None, primary_key=True) 
     patient_id: int = Field(foreign_key="patient.patient_id")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) 
-    mood: str 
+    mood: str   # changed to int 
+
+"""
+Defines the JSON body the client sends to store a mood record. 
+"""
+class MoodInput(BaseModel):
+    patient_id : int 
+    mood: int 

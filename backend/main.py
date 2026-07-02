@@ -1,9 +1,11 @@
+from datetime import datetime
+
 from fastapi import FastAPI, Depends
 import psycopg2 
 from psycopg2.extras import RealDictCursor
 from db import database_url, create_db_and_tables, get_session
 from sqlmodel import select, Session
-from models import User
+import models
 
 app = FastAPI()
 
@@ -41,10 +43,24 @@ def test_db():
 
 @app.get("/api/test-users") # returns all the users in the users table
 def test_users(session: Session = Depends(get_session)):  # inject dependency
-    users = session.exec(select(User)).all()
+    users = session.exec(select(models.User)).all()
     return {"users": users}
 
 
 @app.on_event("startup")
 async def on_startup(): # triggered when the FastAPI app is started
     create_db_and_tables() 
+
+"""
+Endpoint storing a new mood log for the current user. 
+"""
+@app.post("/mood/")   
+async def create_mood(mood: models.MoodInput, session: Session = Depends(get_session)):  
+    new_mood = models.Mood(
+        patient_id=mood.patient_id,  # mood is the object converted from the JSON body
+        mood=mood.mood
+    )
+    session.add(new_mood)  # add created mood to current session
+    session.commit()  # write the mood record in the db 
+    session.refresh(new_mood) # update new_mood object with mood_id and created_at values
+    return new_mood # return stored mood
