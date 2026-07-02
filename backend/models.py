@@ -25,4 +25,9 @@ class HealthRecord(SQLModel, table=True):
     sleep_hours: float | None = None
     resting_heart_rate: int | None = None
     water_cups: int | None = None
-    
+
+class Mood(SQLModel, table=True): 
+    mood_id: int | None = Field(default=None, primary_key=True)
+    patient_id: int = Field(foreign_key="patient.patient_id")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) 
+    mood: str 
