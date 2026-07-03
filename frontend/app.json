@@ -18,7 +18,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "usesCleartextTraffic": true    // needed so Expo go can connect to local IP address with HTTP
       },
       "edgeToEdgeEnabled": true
     },
