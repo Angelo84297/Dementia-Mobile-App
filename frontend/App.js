@@ -55,7 +55,7 @@ async function UpdateMood(patientId, newMood) {
 
 export default function App() {
   return (
-    <View style={[styles.container, {padding: 50, justifyContent: "center"}]}> 
+    <View style={styles.container, {padding: 50, justifyContent: "center"}}> 
       <Text style={{fontWeight: "bold", fontSize: TITLE_TEXT_SIZE}} >Good Morning, Madison!</Text>  {/* Need to replace name with patient's name */}
       <StatusBar style="auto"/>
       <Text style={{fontSize: BODY_TEXT_SIZE, marginVertical: 15}}>How are you feeling today? </Text>  {/* Needs to change depending on whether mood was logged*/}

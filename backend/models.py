@@ -36,6 +36,11 @@ class Mood(SQLModel, table=True):
 """
 Defines the JSON body the client sends to store a mood record. 
 """
-class MoodInput(BaseModel):
+class MoodInput(SQLModel):
     patient_id : int 
     mood: int 
+
+class MoodRead(SQLModel):  # what the UI needs to display
+    mood: int
+    created_at: datetime
+
