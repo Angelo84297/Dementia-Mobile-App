@@ -1,11 +1,41 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, Pressable, Alert } from 'react-native';
+import { StyleSheet, Text, View, Button, Pressable, Alert, FlatList } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+
 const ICON_SIZE = 75  // mood icons
-const BODY_TEXT_SIZE = 15
-const TITLE_TEXT_SIZE = 35  
+const BODY_TEXT_SIZE = 20
+const TITLE_TEXT_SIZE = 37 
+const ICON_COLOR = "#6200ee"  // mood icons
 const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
+
+// mood mock data
+const MOODLIST = [
+  {
+    mood: 3,
+    created_at: "11:40 AM"  // ISO 8601
+  },
+  {
+    mood: 1, 
+    created_at: "06:30 PM" 
+  },
+  {
+    mood: 1, 
+    created_at: "06:30 PM" 
+  },
+  {
+    mood: 1, 
+    created_at: "06:30 PM" 
+  },
+  {
+    mood: 1, 
+    created_at: "06:30 PM" 
+  },
+  {
+    mood: 1, 
+    created_at: "06:30 PM" 
+  },
+]
 
 function MoodButton({icon, label, mood}) { 
   return (
@@ -16,7 +46,7 @@ function MoodButton({icon, label, mood}) {
       <MaterialCommunityIcons
         name={icon}
         size={ICON_SIZE}
-        color="#6200ee"
+        color={ICON_COLOR}
       />
       <Text style={{fontSize: BODY_TEXT_SIZE}}>{label}</Text>
     </Pressable>
@@ -64,10 +94,21 @@ export default function App() {
         justifyContent: "center"}}>  
           <MoodButton icon="emoticon-excited-outline" label="Rad" mood={5}/>
           <MoodButton icon="emoticon-happy-outline" label="Good" mood={4}/>
-          <MoodButton icon="emoticon-neutral-outline" label="Meh" mood={3}/>
+          <MoodButton icon="emoticon-neutral-outline" label="So so" mood={3}/>
           <MoodButton icon="emoticon-sad-outline" label="Bad" mood={2}/>
           <MoodButton icon="emoticon-cry-outline" label="Awful" mood={1}/>
-      </View> 
+      </View>
+        <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginVertical: 15}}>Today's Mood</Text>
+        <FlatList     // displays a scrollable list. Only renders visible items
+        data={MOODLIST}
+        renderItem={({item}) => 
+        <View style={[styles.listItem, {flexDirection: "row", justifyContent: "space-between", marginVertical: 15}, {alignItems: "center"}]}>  
+          <MaterialCommunityIcons name = "emoticon-excited-outline" size={ICON_SIZE} color={ICON_COLOR}/>    {/* need to replace emoji depending on mood */}
+          <Text style={{fontSize:BODY_TEXT_SIZE}}>{item.mood}</Text>
+          <Text style={{fontSize:BODY_TEXT_SIZE}}>{item.created_at}</Text>
+        </View>}
+        keyExtractor={(item) => item.id}
+      />
     </View>
 
   );
