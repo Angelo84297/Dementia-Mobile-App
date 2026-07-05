@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Button, Pressable, Alert, FlatList } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
@@ -8,40 +9,29 @@ const BODY_TEXT_SIZE = 20
 const TITLE_TEXT_SIZE = 37 
 const ICON_COLOR = "#6200ee"  // mood icons
 const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
+const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
 
-// mood mock data
-const MOODLIST = [
-  {
-    mood: 3,
-    created_at: "11:40 AM"  // ISO 8601
-  },
-  {
-    mood: 1, 
-    created_at: "06:30 PM" 
-  },
-  {
-    mood: 1, 
-    created_at: "06:30 PM" 
-  },
-  {
-    mood: 1, 
-    created_at: "06:30 PM" 
-  },
-  {
-    mood: 1, 
-    created_at: "06:30 PM" 
-  },
-  {
-    mood: 1, 
-    created_at: "06:30 PM" 
-  },
-]
+const moodTextMap = {
+  1 : "Awful", 
+  2 : "Bad", 
+  3 : "So so", 
+  4 : "Good", 
+  5 : "Rad"
+}
 
-function MoodButton({icon, label, mood}) { 
+const moodIconMap = {
+  1 : "emoticon-cry-outline", 
+  2 : "emoticon-sad-outline", 
+  3 : "emoticon-neutral-outline", 
+  4 : "emoticon-happy-outline", 
+  5 : "emoticon-excited-outline"
+}
+
+function MoodButton({icon, label, onPress}) { 
   return (
     <Pressable 
       style={{alignItems: "center"}} 
-      onPress={() => {UpdateMood(PATIENT_ID, mood)}}
+      onPress={() => {onPress}}
     >
       <MaterialCommunityIcons
         name={icon}
@@ -59,7 +49,7 @@ To update mood accepts values from 1 (awful) to 5 (excellent).
 */
 async function UpdateMood(patientId, newMood) {
   try {
-    const response = await fetch('http://192.168.1.65:8000/mood/', {  // local IP address. Awit is used since the response is not returned immediately
+    const response = await fetch('http://192.168.1.65:8000/mood/', {  // local IP address. Await is used since the response is not returned immediately
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -76,7 +66,9 @@ async function UpdateMood(patientId, newMood) {
 
     const data = await response.json();   // new row inserted in database
     console.log('Mood updated successfully:', data);
-    Alert.alert('Mood logged', 'Your mood has been recorded successfully.');   // shown on the UI 
+    Alert.alert('Mood logged', 'Your mood has been recorded successfully.');
+    return true; // return true if mood was logged
+   // shown on the UI 
   } catch (e) {
     console.error('Error updating mood:', e);  // display error in terminal
     Alert.alert('Mood update failed', 'Please try again.'); 
@@ -84,6 +76,38 @@ async function UpdateMood(patientId, newMood) {
 }
 
 export default function App() {
+  // List storing Today's mood list fetched from API 
+  const [moodList, setMoods] = useState([]);  // setMoods is the function used to update moodList
+
+  // Function wrapping mood GET request so it can be called more than once
+  const loadMoodList = () => {
+    // HTTP request
+    fetch(`http://192.168.1.65:8000/mood/${PATIENT_ID}/today?timezone_name=${encodeURIComponent(timezone)}`, {method: 'GET'})     
+    // fetch returns response object 
+      .then(response => {
+        if(!response.ok){
+          throw new Error("Could not fetch mood list");
+        }
+        return response.json();
+      })
+      // data returned by .json() is printed
+      .then(data => setMoods(data))// setMoods(data))
+      .catch(error => console.error(error))
+  }
+
+  // load the mood list when the component is displayed on the screen
+  useEffect(() => {
+    loadMoodList(); 
+  }, []);
+
+
+  const handlePress = async (moodValue) => { 
+    const success = await UpdateMood(PATIENT_ID, moodValue);  // waits for server response
+    if (success) {   // if a new mood is logged
+      loadMoodList();  // fetch mood list to make UI refresh every time a new mood is logged
+    }
+  }
+
   return (
     <View style={styles.container, {padding: 50, justifyContent: "center"}}> 
       <Text style={{fontWeight: "bold", fontSize: TITLE_TEXT_SIZE}} >Good Morning, Madison!</Text>  {/* Need to replace name with patient's name */}
@@ -92,20 +116,28 @@ export default function App() {
       <View style={{ 
         flexDirection: "row", /* Align buttons in a row*/
         justifyContent: "center"}}>  
-          <MoodButton icon="emoticon-excited-outline" label="Rad" mood={5}/>
-          <MoodButton icon="emoticon-happy-outline" label="Good" mood={4}/>
-          <MoodButton icon="emoticon-neutral-outline" label="So so" mood={3}/>
-          <MoodButton icon="emoticon-sad-outline" label="Bad" mood={2}/>
-          <MoodButton icon="emoticon-cry-outline" label="Awful" mood={1}/>
+          <MoodButton icon="emoticon-excited-outline" label="Rad" onPress={handlePress(5)}/>
+          <MoodButton icon="emoticon-happy-outline" label="Good" onPress={handlePress(4)}/>
+          <MoodButton icon="emoticon-neutral-outline" label="So so" onPress={handlePress(3)}/>
+          <MoodButton icon="emoticon-sad-outline" label="Bad" onPress={handlePress(2)}/>
+          <MoodButton icon="emoticon-cry-outline" label="Awful" onPress={handlePress(1)}/>
       </View>
         <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginVertical: 15}}>Today's Mood</Text>
         <FlatList     // displays a scrollable list. Only renders visible items
-        data={MOODLIST}
+        data={moodList}
+        
         renderItem={({item}) => 
         <View style={[styles.listItem, {flexDirection: "row", justifyContent: "space-between", marginVertical: 15}, {alignItems: "center"}]}>  
-          <MaterialCommunityIcons name = "emoticon-excited-outline" size={ICON_SIZE} color={ICON_COLOR}/>    {/* need to replace emoji depending on mood */}
-          <Text style={{fontSize:BODY_TEXT_SIZE}}>{item.mood}</Text>
-          <Text style={{fontSize:BODY_TEXT_SIZE}}>{item.created_at}</Text>
+          <MaterialCommunityIcons name = {moodIconMap[item.mood]} size={ICON_SIZE} color={ICON_COLOR}/>    {/* need to replace emoji depending on mood */}
+          <Text style={{fontSize:BODY_TEXT_SIZE}}>{moodTextMap[item.mood]}</Text>
+          <Text style={{fontSize:BODY_TEXT_SIZE}}>
+            { // Convert timestamp to local time
+              new Date(item.created_at).toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+                hour12: true,
+            })}
+            </Text>
         </View>}
         keyExtractor={(item) => item.id}
       />

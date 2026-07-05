@@ -92,4 +92,11 @@ async def retrieve_mood(patient_id : int, timezone_name : str, session : Session
         # Only show results for today
         models.Mood.created_at >= local_midnight)
         ).all()  
+    
+    for mood in mood_list: 
+        # Check if timezone info was lost when created at was saved in database. 
+        if mood.created_at.tzinfo is None: 
+            # Add missing timezone information. Needed by UI to convert to local time. 
+            mood.created_at = mood.created_at.replace(tzinfo=timezone.utc)
+
     return mood_list
