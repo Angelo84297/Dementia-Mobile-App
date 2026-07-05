@@ -31,7 +31,7 @@ function MoodButton({icon, label, onPress}) {
   return (
     <Pressable 
       style={{alignItems: "center"}} 
-      onPress={() => {onPress}}
+      onPress={onPress}
     >
       <MaterialCommunityIcons
         name={icon}
@@ -116,11 +116,11 @@ export default function App() {
       <View style={{ 
         flexDirection: "row", /* Align buttons in a row*/
         justifyContent: "center"}}>  
-          <MoodButton icon="emoticon-excited-outline" label="Rad" onPress={handlePress(5)}/>
-          <MoodButton icon="emoticon-happy-outline" label="Good" onPress={handlePress(4)}/>
-          <MoodButton icon="emoticon-neutral-outline" label="So so" onPress={handlePress(3)}/>
-          <MoodButton icon="emoticon-sad-outline" label="Bad" onPress={handlePress(2)}/>
-          <MoodButton icon="emoticon-cry-outline" label="Awful" onPress={handlePress(1)}/>
+          <MoodButton icon="emoticon-excited-outline" label="Rad" onPress={() => handlePress(5)}/>
+          <MoodButton icon="emoticon-happy-outline" label="Good" onPress={() => handlePress(4)}/>
+          <MoodButton icon="emoticon-neutral-outline" label="So so" onPress={() => handlePress(3)}/>
+          <MoodButton icon="emoticon-sad-outline" label="Bad" onPress={() => handlePress(2)}/>
+          <MoodButton icon="emoticon-cry-outline" label="Awful" onPress={() => handlePress(1)}/>
       </View>
         <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginVertical: 15}}>Today's Mood</Text>
         <FlatList     // displays a scrollable list. Only renders visible items
