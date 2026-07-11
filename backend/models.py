@@ -17,12 +17,12 @@ class Patient(SQLModel, table=True):
     user_id: int = Field(foreign_key="users.user_id")
     age: int | None = None
 
-class HealthRecord(SQLModel, table=True): 
+class HealthRecord(SQLModel, table=True):    # See scripts in database folder to find table changes
     record_id: int | None = Field(default=None, primary_key=True)
     patient_id: int = Field(foreign_key="patient.patient_id")
     # sets timestamp automatically depending on timezone every time a new health record is logged
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) 
-    step_count: int | None = None  # allowed to be null as the patient may not be using the wearable 
+    step_count: int | None = None   
     sleep_hours: float | None = None
     resting_heart_rate: int | None = None
     water_cups: int | None = None
