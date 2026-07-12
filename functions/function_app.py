@@ -14,11 +14,6 @@ the function app is triggered every 1 hour.
               use_monitor=False) 
 def google_health_api(myTimer: func.TimerRequest) -> None:
 
-    # Check if a deadline was missed
-    if myTimer.past_due:
-        logging.info('The timer is past due!')
-
-
     logging.info('Azure Function timer triggered Google Health sync.')
 
     # Load data for new access token from local.settings.json
@@ -37,7 +32,7 @@ def google_health_api(myTimer: func.TimerRequest) -> None:
     }
 
     try: 
-        # Send request to Google and save response in google_response
+        # Request to get new token needed to fetch health data
         google_response = requests.post(token_url, data=token_payload)
         # Check if response was successful. If it fails jump to except block
         google_response.raise_for_status()
@@ -50,34 +45,50 @@ def google_health_api(myTimer: func.TimerRequest) -> None:
 
     now = datetime.datetime.utcnow() # utc required for sending get request to Google Health 
     # The start time of the query
-    start_time = (now - datetime.timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%SZ")  # convert to stirng for Google Health API request
+    start_time = (now - datetime.timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ")  # convert to string for Google Health API request
 
     # The header needs to show the token to prove authorization for data access 
     headers = {"Authorization": f"Bearer {access_token}"}
     # Filtering parameters for the GET request
-    params = {"filter": f'steps.interval.start_time >= "{start_time}"',
-              "pageSize": 1000} # needed when fetching large amounts of data
+    steps_params = {"filter": f'steps.interval.start_time >= "{start_time}"', "pageSize": 1000} # needed when fetching large amounts of data
+    heartbeat_params = {"filter": f'heart_rate.sample_time.physical_time >= "{start_time}"', "pageSize": 5000}
     steps_url = "https://health.googleapis.com/v4/users/me/dataTypes/steps/dataPoints"
+    heartbeat_url = "https://health.googleapis.com/v4/users/me/dataTypes/heart-rate/dataPoints"
 
     try : 
-        steps_response = requests.get(steps_url, headers=headers, params=params)
-        steps_response.raise_for_status()
-        
-        data_points = steps_response.json().get("dataPoints", [])  # get is used so an empty list can be returned in case the value doesn't exist
+        steps_response = requests.get(steps_url, headers=headers, params=steps_params)
+        steps_response.raise_for_status()  # jump to except in case of error
+        heartbeat_response = requests.get(heartbeat_url, headers=headers, params=heartbeat_params)
+        heartbeat_response.raise_for_status()
 
-        steps_per_hour = {}  # store datetime as keys and the corresponding stepcount as values. 
+        steps_dps = steps_response.json().get("dataPoints", [])  # an empty list can be returned in case the value doesn't exist
+        heartbeat_dps = heartbeat_response.json().get("dataPoints", [])
+
+        # store steps, average heartbeat for each hour inside inner dictionary
+        hour_buckets = {}  # datetime is used as keys
 
         # loop through data points and aggregate data for each hour. 
-        for data_point in data_points: 
+        for data_point in steps_dps: 
             
             step_count = int(data_point['steps']['count'])
             # Truncate the string leaving date and hour. Add :00:00 as it's the format accepted by MySQL
-            hour_block = data_point['steps']['interval']['startTime'][:13] + ":00:00"   # e.g. truncated '2026-07-11T13 2026-07-11T13:00:00'
-            # if a datapoint startTime correspond to one of the existing datetime, sum the stepcounts
-            if hour_block in steps_per_hour: 
-                steps_per_hour[hour_block] += step_count
-            else: 
-                steps_per_hour[hour_block] = step_count
+            hour_block = data_point['steps']['interval']['startTime'][:13] + ":00:00"   
+            
+            # initialise hour block if not in the dictionary
+            if hour_block not in hour_buckets: 
+                hour_buckets[hour_block] = {"stepcount" : 0, "bpm_sum" : 0, "bpm_count": 0}   # sum and count used to calculate heart rate hourly average
+
+            hour_buckets[hour_block]["stepcount"] += step_count
+        
+        for data_point in heartbeat_dps: 
+            bpm = int(data_point['heartRate']['beatsPerMinute'])
+            
+            hour_block = data_point['heartRate']['sampleTime']['physicalTime'][:13] + ":00:00"
+            if hour_block not in hour_buckets: 
+                hour_buckets[hour_block] = {"stepcount" : 0, "bpm_sum" : 0, "bpm_count": 0}   
+            
+            hour_buckets[hour_block]["bpm_sum"] += bpm 
+            hour_buckets[hour_block]["bpm_count"] += 1
 
         # Save data in Database
         try:
@@ -92,16 +103,26 @@ def google_health_api(myTimer: func.TimerRequest) -> None:
 
             with connection.cursor() as cursor:  # automatically close the cursor
                 sql_query = (
-                    "INSERT INTO healthrecord (patient_id, step_count, hour_block) "
-                    "VALUES (%s, %s, %s) "
-                    "ON DUPLICATE KEY UPDATE step_count = VALUES(step_count)"  # if the step count already exists for a specific hour, update the value. 
-                )                                                              # It ensures the database doesn't miss late syncs
+                    "INSERT INTO healthrecord (patient_id, step_count, average_heart_rate, hour_block) "
+                    "VALUES (%s, %s, %s, %s) "
+                    "ON DUPLICATE KEY UPDATE step_count = VALUES(step_count), "  # if data for a datetime was already recorded update the value. 
+                    "average_heart_rate = VALUES(average_heart_rate);"          # It ensures the database doesn't miss late syncs
+                )                                                              
 
                 patient_id = int(os.environ["PATIENT_ID"])
-                for hour_block in steps_per_hour:
+
+
+                for hour_block in hour_buckets:
+
+                    hr_hourly_average = 0 
+                    hourly_step_count = hour_buckets[hour_block]["stepcount"]
+
+                    if (hour_buckets[hour_block]["bpm_count"] > 0):   # to ensure 0/0 is avoided 
+                        hr_hourly_average = hour_buckets[hour_block]["bpm_sum"]/hour_buckets[hour_block]["bpm_count"]
+
                     cursor.execute(
                         sql_query,
-                        (patient_id, steps_per_hour[hour_block], hour_block),
+                        (patient_id, hourly_step_count, hr_hourly_average, hour_block),
                     )
 
             connection.commit()
@@ -115,5 +136,5 @@ def google_health_api(myTimer: func.TimerRequest) -> None:
             connection.close()
     
     except Exception as e: 
-        logging.error(f"Steps data request failed: {e}")
+        logging.error(f"Data request failed: {e}")
         return
