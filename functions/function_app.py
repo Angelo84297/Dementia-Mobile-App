@@ -44,13 +44,13 @@ def google_health_api(myTimer: func.TimerRequest) -> None:
         return
 
     now = datetime.datetime.utcnow() # utc required for sending get request to Google Health 
-    # The start time of the query
-    start_time = (now - datetime.timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%SZ")  # convert to string for Google Health API request
+    # The start time of the query. 
+    start_time = (now - datetime.timedelta(hours=12)).strftime("%Y-%m-%dT%H:%M:%SZ")  # convert to string for Google Health API request
 
     # The header needs to show the token to prove authorization for data access 
     headers = {"Authorization": f"Bearer {access_token}"}
     # Filtering parameters for the GET request
-    steps_params = {"filter": f'steps.interval.start_time >= "{start_time}"', "pageSize": 1000} # needed when fetching large amounts of data
+    steps_params = {"filter": f'steps.interval.start_time >= "{start_time}"', "pageSize": 1000} # PageSize needed when fetching large amounts of data
     heartbeat_params = {"filter": f'heart_rate.sample_time.physical_time >= "{start_time}"', "pageSize": 5000}
     steps_url = "https://health.googleapis.com/v4/users/me/dataTypes/steps/dataPoints"
     heartbeat_url = "https://health.googleapis.com/v4/users/me/dataTypes/heart-rate/dataPoints"
@@ -58,11 +58,25 @@ def google_health_api(myTimer: func.TimerRequest) -> None:
     try : 
         steps_response = requests.get(steps_url, headers=headers, params=steps_params)
         steps_response.raise_for_status()  # jump to except in case of error
-        heartbeat_response = requests.get(heartbeat_url, headers=headers, params=heartbeat_params)
-        heartbeat_response.raise_for_status()
+        hb_response = requests.get(heartbeat_url, headers=headers, params=heartbeat_params)
+        hb_response.raise_for_status()
+        parsed_hb_response = hb_response.json()  # parsed here to avoid parsing twice later
 
         steps_dps = steps_response.json().get("dataPoints", [])  # an empty list can be returned in case the value doesn't exist
-        heartbeat_dps = heartbeat_response.json().get("dataPoints", [])
+
+        heartbeat_dps = []
+        heartbeat_dps += parsed_hb_response.get("dataPoints", [])   
+        hb_next_page_token = parsed_hb_response.get("nextPageToken")    # if != None it means there is more data to be fetched. 
+
+        # Keep sending get requests while a nextPageToken is returned. 
+        # Since Google limits the amount of data sent for each request, this ensures all data is fetched. 
+        while hb_next_page_token: 
+            heartbeat_params["pageToken"] = hb_next_page_token  # tell cursor where to continue fetching data
+            hb_response = requests.get(heartbeat_url, headers=headers, params=heartbeat_params)
+            hb_response.raise_for_status()
+            parsed_hb_response = hb_response.json()   
+            heartbeat_dps += parsed_hb_response.get("dataPoints", [])   
+            hb_next_page_token = parsed_hb_response.get("nextPageToken")
 
         # store steps, average heartbeat for each hour inside inner dictionary
         hour_buckets = {}  # datetime is used as keys
