@@ -1,6 +1,5 @@
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, SQLModel, UniqueConstraint
 from datetime import datetime, timezone
-from pydantic import BaseModel 
 
 
 class User(SQLModel, table=True):  # table=True tells SQLModel this represents a table. It is registered in the metadata object
@@ -32,6 +31,18 @@ class Mood(SQLModel, table=True):
     patient_id: int = Field(foreign_key="patient.patient_id")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) 
     mood: str   # changed to int 
+
+class Sleep(SQLModel, table=True): 
+    sleep_id: int | None = Field(default=None, primary_key=True) 
+    patient_id: int = Field(foreign_key="patient.patient_id")
+    start_time: datetime 
+    end_time: datetime
+    minutes_asleep: int
+    minutes_awake: int 
+
+    __table_args__ = (
+        UniqueConstraint("patient_id", "end_time"),  # create unique key allowing new fetches to update existing values
+    )
 
 """
 Defines the JSON body the client sends to store a mood record. 

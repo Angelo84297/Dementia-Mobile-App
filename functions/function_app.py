@@ -4,7 +4,6 @@ import datetime
 import pymysql
 from authentication import get_access_token
 from google_health import fetch_data_points
-import json
 
 app = func.FunctionApp()
 
@@ -103,7 +102,7 @@ def fetch_hourly_health_records(myTimer: func.TimerRequest) -> None:
     
 
 """
-the function app is triggered every 8 hours. 
+the function app is triggered every 8 hours to fetch sleep data that may happen at night or during the day. 
 """
 @app.timer_trigger(schedule="0 0 */8 * * *", arg_name="myTimer", run_on_startup=True,    # run_on_startup recommended to stay False in production
               use_monitor=False) 
@@ -120,24 +119,54 @@ def fetch_sleep_records(myTimer: func.TimerRequest) -> None:
     sleep_params = {"filter": f'sleep.interval.end_time >= "{start_time}"'} 
 
     sleep_url = "https://health.googleapis.com/v4/users/me/dataTypes/sleep/dataPoints"
-
     sleep_dps = fetch_data_points(sleep_url, headers=headers, params=sleep_params)
-    
-   # store sleep sessions, 
-    sleep_sessions = {}  # end times are used as keys 
 
-    # loop through data points and aggregate data for each hour. 
-    for data_point in sleep_dps: 
+    try: 
+        # connect to database
+        connection = pymysql.connect(
+                host=os.environ["DB_HOST"],
+                user=os.environ["DB_USER"],
+                password=os.environ["DB_PASSWORD"],
+                database=os.environ["DB_NAME"],
+                autocommit=False,
+            )
         
-        minutes_asleep = int(data_point["sleep"]['summary']['minutesAsleep']) 
-        print(minutes_asleep)
-        end_time = (data_point["sleep"]["interval"]["endTime"][:19]).replace("T", " ")   # change the format for MySQL
-        start_time = (data_point["sleep"]["interval"]["startTime"][:19]).replace("T", " ")
-        minutes_awake = int(data_point["sleep"]['summary']['minutesAwake'])
+        with connection.cursor() as cursor:  # automatically close the cursor
+            sql_query = (
+                "INSERT INTO sleep (patient_id, start_time, end_time, minutes_asleep, minutes_awake) "
+                "VALUES (%s, %s, %s, %s, %s) "
+                "ON DUPLICATE KEY UPDATE start_time = VALUES(start_time), "  
+                "end_time = VALUES(end_time), "          # Ensures the database doesn't miss late syncs
+                "minutes_asleep = VALUES(minutes_asleep), "    
+                "minutes_awake = VALUES(minutes_awake); "
+            )   
 
-        print(minutes_awake)
-        print(start_time)
-        print(end_time)
+            patient_id = int(os.environ["PATIENT_ID"])
+
+            # loop through data points and save sleep sessions in database
+            for data_point in sleep_dps: 
+                
+                minutes_asleep = int(data_point["sleep"]['summary']['minutesAsleep']) 
+                end_time = (data_point["sleep"]["interval"]["endTime"][:19]).replace("T", " ")   # change the format for MySQL
+                start_time = (data_point["sleep"]["interval"]["startTime"][:19]).replace("T", " ")
+                minutes_awake = int(data_point["sleep"]['summary']['minutesAwake'])
+                
+                cursor.execute(
+                    sql_query,
+                    (patient_id, start_time, end_time, minutes_asleep, minutes_awake),
+                )
+        
+        connection.commit()
+
+        
+    except Exception as e: 
+        # In case of errors revert all the changes in the database. 
+        connection.rollback()
+        print("Database transaction failed: ", e)
+
+    finally: 
+        # Ensure resources are released
+        connection.close()
         
 
 
