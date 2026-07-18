@@ -20,11 +20,15 @@ class HealthRecord(SQLModel, table=True):    # See scripts in database folder to
     record_id: int | None = Field(default=None, primary_key=True)
     patient_id: int = Field(foreign_key="patient.patient_id")
     # sets timestamp automatically depending on timezone every time a new health record is logged
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) 
-    step_count: int | None = None   
-    sleep_hours: float | None = None
-    resting_heart_rate: int | None = None
-    water_cups: int | None = None
+    hour_block: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) 
+    step_count: int 
+    average_heart_rate: int | None = None
+
+    __table_args__ = (
+        UniqueConstraint("patient_id", "hour_block"),  
+    )
+
+
 
 class Mood(SQLModel, table=True): 
     mood_id: int | None = Field(default=None, primary_key=True) 
@@ -54,4 +58,9 @@ class MoodInput(SQLModel):
 class MoodRead(SQLModel):  # what the UI needs to display
     mood: int
     created_at: datetime
+
+class DailyHealthRecord(SQLModel): 
+    total_step_count : int
+    average_heart_rate : int | None = None   # set to null automatically if no value is returned
+    max_sleep_minutes : int | None = None
 
