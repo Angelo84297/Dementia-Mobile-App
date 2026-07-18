@@ -22,4 +22,3 @@ each request needs its own session
 def get_session():
     with Session(engine) as session:
         yield session    # yield is used so the session can be closed automatically at the end of the endpoint execution
-
