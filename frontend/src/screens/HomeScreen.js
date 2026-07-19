@@ -109,7 +109,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.container, {padding: 50, justifyContent: "center"}}> 
+    <View style={[styles.container, {padding: 50, justifyContent: "center"}]}> 
       <Text style={{fontWeight: "bold", fontSize: TITLE_TEXT_SIZE}} >Good Morning, Madison!</Text>  {/* Need to replace name with patient's name */}
       <StatusBar style="auto"/>
       <Text style={{fontSize: BODY_TEXT_SIZE, marginVertical: 15}}>How are you feeling today? </Text>  {/* Needs to change depending on whether mood was logged*/}
@@ -122,9 +122,10 @@ export default function HomeScreen() {
           <MoodButton icon="emoticon-sad-outline" label={moodTextMap[2]} onPress={() => handlePress(2)}/>
           <MoodButton icon="emoticon-cry-outline" label={moodTextMap[1]} onPress={() => handlePress(1)}/>
       </View>
-        if({moodList.length>0}): {
+      {/* Display only when there is mood items in the list */}
+        {moodList.length > 0 && (    
           <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginVertical: 15}}>Today's Mood</Text>
-}
+       )}
         <FlatList     // displays a scrollable list. Only renders visible items
         data={moodList}
         
@@ -152,7 +153,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
   },
 });
