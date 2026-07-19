@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const ICON_SIZE = 75  // mood icons
 const BODY_TEXT_SIZE = 20
-const TITLE_TEXT_SIZE = 37 
+export const TITLE_TEXT_SIZE = 30 
 const ICON_COLOR = "#6200ee"  // mood icons
 const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
@@ -14,9 +14,9 @@ const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local tim
 const moodTextMap = {
   1 : "Awful", 
   2 : "Bad", 
-  3 : "So so", 
+  3 : "Fair", 
   4 : "Good", 
-  5 : "Rad"
+  5 : "Super"
 }
 
 const moodIconMap = {
@@ -116,13 +116,15 @@ export default function HomeScreen() {
       <View style={{ 
         flexDirection: "row", /* Align buttons in a row*/
         justifyContent: "center"}}>  
-          <MoodButton icon="emoticon-excited-outline" label="Rad" onPress={() => handlePress(5)}/>
-          <MoodButton icon="emoticon-happy-outline" label="Good" onPress={() => handlePress(4)}/>
-          <MoodButton icon="emoticon-neutral-outline" label="So so" onPress={() => handlePress(3)}/>
-          <MoodButton icon="emoticon-sad-outline" label="Bad" onPress={() => handlePress(2)}/>
-          <MoodButton icon="emoticon-cry-outline" label="Awful" onPress={() => handlePress(1)}/>
+          <MoodButton icon="emoticon-excited-outline" label={moodTextMap[5]} onPress={() => handlePress(5)}/>
+          <MoodButton icon="emoticon-happy-outline" label={moodTextMap[4]} onPress={() => handlePress(4)}/>
+          <MoodButton icon="emoticon-neutral-outline" label={moodTextMap[3]} onPress={() => handlePress(3)}/>
+          <MoodButton icon="emoticon-sad-outline" label={moodTextMap[2]} onPress={() => handlePress(2)}/>
+          <MoodButton icon="emoticon-cry-outline" label={moodTextMap[1]} onPress={() => handlePress(1)}/>
       </View>
-        <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginVertical: 15}}>Today's Mood</Text>
+        if({moodList.length>0}): {
+          <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginVertical: 15}}>Today's Mood</Text>
+}
         <FlatList     // displays a scrollable list. Only renders visible items
         data={moodList}
         

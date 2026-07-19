@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'; 
+import { TITLE_TEXT_SIZE} from './HomeScreen';
 
 export default function HealthScreen() {
   return (
-    <View>
-      {/* Expand container to take all the space in the screen */}
-        
+    // Expand container to take all the space in the screen 
+    <View style={{ flex: 1 }}>
+        {/* Ensure the user can scroll and read the whole advice */}
         <ScrollView>
             {/* Header */}
             <View style={styles.header}>
@@ -15,31 +16,50 @@ export default function HealthScreen() {
             {/* Cards Grid */}
             <View style={styles.grid}>
 
-                <View style={styles.card}>
-
+                {/* Sleep card */}
+                <View style={[styles.card, { backgroundColor: '#E0E0FF'}]}>
                     <View style={styles.cardRow}>   
-                        <Ionicons name ='moon' size={25}/>
+                        <Ionicons name ='moon' size={25} />
                         <Text style={styles.cardTitle}> Sleep time </Text>
                     </View>
 
                     <Text style={styles.cardValue}> 7 h 30 m </Text>
                 </View>
-
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}> Heart Rate </Text>
+                {/* Heart rate card */}
+                <View style={[styles.card, { backgroundColor: '#b2e9e1'}]}>
+                    <View style={styles.cardRow}> 
+                        <Ionicons name ='heart' size={25} />
+                        <Text style={styles.cardTitle}> Heart Rate </Text>
+                    </View>
                     <Text style={styles.cardValue}> 68 bpm </Text>
                 </View>
-
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}> Water </Text>
+                {/* Water cups card */}
+                <View style={[styles.card, { backgroundColor: '#5fd3e5'}]}>
+                    <View style={styles.cardRow}> 
+                        <MaterialCommunityIcons name ='cup-water' size={25} />
+                        <Text style={styles.cardTitle}> Water </Text>
+                    </View>
                     <Text style={styles.cardValue}> 5 cups </Text>
                 </View>
-
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}> Walking </Text>
+                {/* Steps  card */}
+                <View style={[styles.card, { backgroundColor: '#F5A5A5'}]}> 
+                    <View style={styles.cardRow}>
+                        <Ionicons name ='footsteps' size={25} />
+                        <Text style={styles.cardTitle}> Walking </Text>
+                    </View>
                     <Text style={styles.cardValue}> 3500 steps </Text>
                 </View>
+
             </View>
+                <View>
+                    <View style={[styles.reccomendationCard, { backgroundColor: '#88e1e9'}]}> 
+                        <View style={styles.cardRow}>
+                            <Ionicons name ='sparkles' size={25} />
+                            <Text style={styles.reccomendationTitle}> AI Wellbeing reccomandation </Text>
+                        </View>
+                    <Text style={styles.reccomendationBody}> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </Text>
+                    </View>
+                </View>
 
         </ScrollView>
     </View>
@@ -49,24 +69,26 @@ export default function HealthScreen() {
 {/* Separating the style makes the code more readeable */}
 const styles = StyleSheet.create({ 
     header: {
-        alighItems: 'center', 
         flexDirection: 'row', 
         marginTop: 40,
         marginBottom: 15,
         marginLeft: 15
     },
     headerTitle: {
-        fontSize :  20, 
+        fontSize :  TITLE_TEXT_SIZE, 
+        fontWeight : 'bold',
     },
     card: { 
-        width : '50%',   // fit two cards in each row
-        aspectRatio : 1.25,   // make the cards rectangles
-        padding : 14 , 
-        marginBottom : 20
+        width : '47%',   // fit two cards in each row. The percentage is used so the same layout can be applied independently from the smaprtphone
+        padding : 16, 
+        marginBottom : 20, 
+        borderRadius : 16,   // make edges circular
     }, 
     grid: { 
         flexDirection : "row", 
         flexWrap : "wrap",  // make children wrap into multiple lines when overflowing
+        justifyContent : 'space-between',
+        paddingHorizontal : 16,
     },
     cardRow: {
         flexDirection: "row",   // make icon and title appear next to each other
@@ -75,12 +97,29 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize : 18, 
-        fontWeight : 400
+        fontWeight : '450'
     },
     cardValue: {
         fontSize : 25, 
         fontWeight : 'bold',
         color: '#0A1C3A'
+    },
+    reccomendationCard: {
+        marginTop:25, 
+        borderRadius : 16,
+        paddingHorizontal : 20,  // push content inward
+        marginHorizontal: 16,   // space from both sides
+        paddingTop: 15
+    },
+    reccomendationTitle: {
+    fontWeight : 'bold',
+        fontSize : 25, 
+        fontWeight : 'bold',
+    },
+    reccomendationBody: {
+        fontSize : 25,
+        marginTop : 10
     }
+    
 })
 
