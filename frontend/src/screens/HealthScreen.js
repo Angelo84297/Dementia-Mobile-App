@@ -1,9 +1,44 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'; 
-import { TITLE_TEXT_SIZE} from './HomeScreen';
+import { TITLE_TEXT_SIZE, PATIENT_ID, timezone } from './HomeScreen';
+import { useEffect, useState } from 'react';
 
 export default function HealthScreen() {
+
+    const [dailyHealthRecord, setHealthRecord] = useState(null);  
+
+  // Function wrapping mood GET request so it can be called more than once
+  const loadHealthRecord = () => {
+    // HTTP request
+    fetch(`http://192.168.1.65:8000/healthsummary/${PATIENT_ID}/today?timezone_name=${encodeURIComponent(timezone)}`, {method: 'GET'})     
+    // fetch returns response object 
+      .then(response => {
+        if(!response.ok){
+          throw new Error("Could not fetch Health Record");
+        }
+        return response.json();
+      })
+      .then(data => {
+        setHealthRecord(data);
+      })
+      .catch(error => console.error(error))
+  }
+
+  useEffect(() => {
+    loadHealthRecord(); 
+  }, []);
+
+  // convert minutes in a string showing hours and minutes.
+  function minutes_to_hours (total_min) {
+    if (total_min == null) {
+        return null 
+    } else {
+        const hours = Math.floor(total_min / 60);
+        const min = total_min % 60;
+        return `${hours} h ${min} m`;
+  }}
+
   return (
     // Expand container to take all the space in the screen 
     <View style={{ flex: 1 }}>
@@ -22,8 +57,8 @@ export default function HealthScreen() {
                         <Ionicons name ='moon' size={25} />
                         <Text style={styles.cardTitle}> Sleep time </Text>
                     </View>
-
-                    <Text style={styles.cardValue}> 7 h 30 m </Text>
+                     {/* Display No record if the api call returns null value */}
+                    <Text style={styles.cardValue}> {minutes_to_hours(dailyHealthRecord?.max_sleep_minutes) ?? "No record"} </Text>    
                 </View>
                 {/* Heart rate card */}
                 <View style={[styles.card, { backgroundColor: '#b2e9e1'}]}>
@@ -31,7 +66,12 @@ export default function HealthScreen() {
                         <Ionicons name ='heart' size={25} />
                         <Text style={styles.cardTitle}> Heart Rate </Text>
                     </View>
-                    <Text style={styles.cardValue}> 68 bpm </Text>
+                    <Text style={styles.cardValue}> {
+                    minutes_to_hours(dailyHealthRecord?.average_heart_rate) != null 
+                    /* show if average bpm is not null*/
+                    ? dailyHealthRecord?.average_heart_rate + " bpm" 
+                    /* show if average bpm is null*/
+                    : "No record"} </Text>
                 </View>
                 {/* Water cups card */}
                 <View style={[styles.card, { backgroundColor: '#5fd3e5'}]}>
@@ -39,7 +79,8 @@ export default function HealthScreen() {
                         <MaterialCommunityIcons name ='cup-water' size={25} />
                         <Text style={styles.cardTitle}> Water </Text>
                     </View>
-                    <Text style={styles.cardValue}> 5 cups </Text>
+                    {/* Placeholder  for Water log*/ }
+                    <Text style={styles.cardValue}> No record </Text>   
                 </View>
                 {/* Steps  card */}
                 <View style={[styles.card, { backgroundColor: '#F5A5A5'}]}> 
@@ -47,7 +88,7 @@ export default function HealthScreen() {
                         <Ionicons name ='footsteps' size={25} />
                         <Text style={styles.cardTitle}> Walking </Text>
                     </View>
-                    <Text style={styles.cardValue}> 3500 steps </Text>
+                    <Text style={styles.cardValue}> {dailyHealthRecord?.total_step_count} steps </Text>
                 </View>
 
             </View>

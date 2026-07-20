@@ -8,8 +8,8 @@ const ICON_SIZE = 75  // mood icons
 const BODY_TEXT_SIZE = 20
 export const TITLE_TEXT_SIZE = 30 
 const ICON_COLOR = "#6200ee"  // mood icons
-const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
-const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
+export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
+export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
 
 const moodTextMap = {
   1 : "Awful", 
