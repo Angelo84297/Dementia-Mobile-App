@@ -1,6 +1,6 @@
 from sqlmodel import Field, SQLModel, UniqueConstraint
 from datetime import datetime, timezone
-
+from typing import List
 
 class User(SQLModel, table=True):  # table=True tells SQLModel this represents a table. It is registered in the metadata object
     __tablename__ = "users"   # table name replaced with users
@@ -27,8 +27,6 @@ class HealthRecord(SQLModel, table=True):    # See scripts in database folder to
     __table_args__ = (
         UniqueConstraint("patient_id", "hour_block"),  
     )
-
-
 
 class Mood(SQLModel, table=True): 
     mood_id: int | None = Field(default=None, primary_key=True) 
@@ -63,4 +61,22 @@ class DailyHealthRecord(SQLModel):
     total_step_count : int
     average_heart_rate : int | None = None   # set to null automatically if no value is returned
     max_sleep_minutes : int | None = None
+
+class WellbeingAdvice(SQLModel):
+    advice : str 
+
+class SleepSession(SQLModel): 
+    start_time : datetime
+    end_time : datetime
+    min_awake : int
+    min_asleep : int 
+
+class HourlyActivity(SQLModel): 
+    hour_block:  datetime
+    avg_heart_rate : int | None
+    step_count : int 
+
+class GeminiPayload(SQLModel): 
+    hourly_activity: List[HourlyActivity] = []  # assign empty list if no data is found
+    sleep_sessions: List[SleepSession] = []
 

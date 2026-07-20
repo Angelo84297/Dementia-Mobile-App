@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo 
-
 from fastapi import FastAPI, Depends
 import psycopg2 
 from psycopg2.extras import RealDictCursor
@@ -8,9 +7,17 @@ from db import database_url, create_db_and_tables, get_session
 from sqlmodel import select, Session
 from typing import List
 import models
+from google import genai
+import os
+from dotenv import load_dotenv
+
 
 app = FastAPI()
 
+# load environment variables from .env 
+load_dotenv()
+
+genai_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 def get_db_connection(): 
     try: 
@@ -67,8 +74,7 @@ async def create_mood(mood: models.MoodInput, session: Session = Depends(get_ses
     session.refresh(new_mood) # update new_mood object with mood_id and created_at values
     return new_mood # return stored mood
 
-def start_user_day(timezone_name : str): 
-
+def calculate_local_midnight(timezone_name : str): 
     # Calculate now in UTC
     now_utc = datetime.now(timezone.utc)
     # Calculate user's timezone
@@ -84,7 +90,7 @@ def start_user_day(timezone_name : str):
 @app.get("/mood/{patient_id}/today", response_model = List[models.MoodRead])   # {patient_id} is used to find mood list of a specific patient
 def retrieve_mood(patient_id : int, timezone_name : str, session : Session = Depends(get_session)): 
     # Calculate local midnight
-    local_midnight = start_user_day(timezone_name= timezone_name)
+    local_midnight = calculate_local_midnight(timezone_name= timezone_name)
     # Query the table retrieving mood list 
     mood_list = session.exec(select(models.Mood).where(
         # Filter results depending on patient id
@@ -104,7 +110,7 @@ def retrieve_mood(patient_id : int, timezone_name : str, session : Session = Dep
 @app.get("/healthsummary/{patient_id}/today")
 def retrieve_daily_health_record(patient_id: int, timezone_name : str, session : Session = Depends(get_session)): 
 
-    local_midnight = start_user_day(timezone_name= timezone_name)
+    local_midnight = calculate_local_midnight(timezone_name= timezone_name)
 
 
     health_records = session.exec(select(models.HealthRecord).where(
@@ -145,3 +151,69 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
         daily_record['max_sleep_minutes'] = max_minutes_asleep
         
     return daily_record
+
+@app.post("/wellbeingadvice/{patient_id}")
+async def generate_wellbeing_advice(patient_id :int, timezone_name : str, session : Session = Depends(get_session)):  # async is used so the server can handle other requests while waiting for a response
+    
+    
+    gemini_payload = build_gemini_payload(patient_id=patient_id, timezone_name=timezone_name, session=session)
+
+    prompt = f"""You are a supportive health and wellness companion. Analyse this dementia patient's health data and provide wellbeing advice. 
+
+    <patient_health_context> 
+    {gemini_payload}
+    </patient_health_context>
+
+    Based on the this data provide 2-3 reccomendations. Do not diagnose the patient."""
+
+    # Gemini API call
+    response = await genai_client.aio.models.generate_content(
+        model="gemini-3.5-flash",
+        contents= prompt
+    )
+
+    return {"advice" : response.text}
+    
+def build_gemini_payload(patient_id, timezone_name : str, session: Session):  
+
+    # fetch patient's age for more context
+
+    # local midnight in database format (utc 0) 
+    local_midnight = calculate_local_midnight(timezone_name)   
+
+    # fetch today health records
+    health_records = session.exec(
+        select(models.HealthRecord).where(
+            models.HealthRecord.patient_id == patient_id,
+            models.HealthRecord.hour_block >= local_midnight
+        )
+    ).all()
+
+    # fetch all the sleep sessions ending today
+    sleep_records = session.exec(
+        select(models.Sleep).where(
+            models.Sleep.patient_id == patient_id,
+            models.Sleep.end_time >= local_midnight
+    )).all()
+    
+    hourly_list = []
+    sleep_list = []
+
+    for health_record in health_records: 
+        hourly_list.append(models.HourlyActivity(
+            hour_block=health_record.hour_block, 
+            avg_heart_rate=health_record.average_heart_rate, 
+            step_count=health_record.step_count))
+        
+    for sleep_record in sleep_records: 
+        sleep_list.append(models.SleepSession(
+            start_time=sleep_record.start_time,
+            end_time=sleep_record.end_time,
+            min_awake=sleep_record.minutes_awake,
+            min_asleep=sleep_record.minutes_asleep
+        ))
+
+    payload = models.GeminiPayload(hourly_activity = hourly_list, sleep_sessions = sleep_list)
+
+    # convert to JSON string to add in Gemini prompt. Indent = 2 used for readability
+    return payload.model_dump_json(indent=2)
