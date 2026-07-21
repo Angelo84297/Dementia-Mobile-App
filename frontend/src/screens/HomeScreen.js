@@ -66,7 +66,7 @@ async function UpdateMood(patientId, newMood) {
 
     const data = await response.json();   // new row inserted in database
     console.log('Mood updated successfully:', data);
-    Alert.alert('Mood logged', 'Your mood has been recorded successfully.');
+    Alert.alert('Mood logged', 'Your mood has been recorded successfully.'); // message for the user
     return true; // return true if mood was logged
    // shown on the UI 
   } catch (e) {
@@ -77,8 +77,7 @@ async function UpdateMood(patientId, newMood) {
 
 export default function HomeScreen() {
   // List storing Today's mood list fetched from API 
-  const [moodList, setMoods] = useState([]);  // setMoods is the function used to update moodList
-
+  const [moodList, setMoods] = useState([]);  // setMoods is the function used to update moodList. useState stores and updates the moodList 
   // Function wrapping mood GET request so it can be called more than once
   const loadMoodList = () => {
     // HTTP request
@@ -90,8 +89,7 @@ export default function HomeScreen() {
         }
         return response.json();
       })
-      // data returned by .json() is printed
-      .then(data => setMoods(data))// setMoods(data))
+      .then(data => setMoods(data))
       .catch(error => console.error(error))
   }
 

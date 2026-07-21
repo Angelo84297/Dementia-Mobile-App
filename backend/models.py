@@ -1,5 +1,5 @@
 from sqlmodel import Field, SQLModel, UniqueConstraint
-from datetime import datetime, timezone
+from datetime import datetime, timezone, time
 from typing import List
 
 class User(SQLModel, table=True):  # table=True tells SQLModel this represents a table. It is registered in the metadata object
@@ -45,6 +45,25 @@ class Sleep(SQLModel, table=True):
     __table_args__ = (
         UniqueConstraint("patient_id", "end_time"),  # create unique key allowing new fetches to update existing values
     )
+
+class Task(SQLModel, table=True): 
+    task_id : int | None = Field(default=None, primary_key=True)
+    patient_id: int = Field(foreign_key="patient.patient_id")
+    description: str 
+    notes : str | None = None    
+    notification_time: time
+    frequency : str | None = None    # default to none for simplicity 
+    status : str
+    start_date: datetime | None = None   # needed for when frequency is set on weekly or every other day
+
+class TaskRead(SQLModel):     
+    task_id : int 
+    description: str 
+    notes : str | None = None
+    notification_time: time
+    frequency : str | None = None
+    status : str
+    start_date: datetime | None = None
 
 """
 Defines the JSON body the client sends to store a mood record. 

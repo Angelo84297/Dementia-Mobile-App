@@ -173,7 +173,17 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
     )
 
     return {"advice" : response.text}
+
+@app.get("/task/{patient_id}")
+def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)): 
     
+    task_list = session.exec(select(models.Task).where(
+        models.Task.patient_id == patient_id)
+        ).all()  
+
+    return task_list
+
+
 def build_gemini_payload(patient_id, timezone_name : str, session: Session):  
 
     # fetch patient's age for more context
