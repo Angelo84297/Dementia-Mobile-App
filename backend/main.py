@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, UTC
 from zoneinfo import ZoneInfo 
 from fastapi import FastAPI, Depends
 import psycopg2 
@@ -201,19 +201,28 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
 
     for health_record in health_records: 
         hourly_list.append(models.HourlyActivity(
-            hour_block=health_record.hour_block, 
+            # time is converted to local to give Gemini better context
+            hour_block=convert_to_local(health_record.hour_block, timezone_name), 
             avg_heart_rate=health_record.average_heart_rate, 
             step_count=health_record.step_count))
         
     for sleep_record in sleep_records: 
         sleep_list.append(models.SleepSession(
-            start_time=sleep_record.start_time,
-            end_time=sleep_record.end_time,
+            start_time=convert_to_local(sleep_record.start_time, timezone_name),
+            end_time=convert_to_local(sleep_record.end_time, timezone_name),
             min_awake=sleep_record.minutes_awake,
             min_asleep=sleep_record.minutes_asleep
         ))
 
     payload = models.GeminiPayload(hourly_activity = hourly_list, sleep_sessions = sleep_list)
+    # print for debugging
+    print(payload.model_dump_json(indent=2))
 
     # convert to JSON string to add in Gemini prompt. Indent = 2 used for readability
     return payload.model_dump_json(indent=2)
+
+def convert_to_local(datetime_input, timezone_name): 
+    # add timezone info as it's not stored in the db 
+    utc_datetime = datetime_input.replace(tzinfo=UTC)
+    # return datetime converted to local time
+    return utc_datetime.astimezone(ZoneInfo(timezone_name))
