@@ -52,9 +52,9 @@ class Task(SQLModel, table=True):
     description: str 
     notes : str | None = None    
     notification_time: time
-    frequency : str | None = None    # default to none for simplicity 
-    status : str
-    start_date: datetime | None = None   # needed for when frequency is set on weekly or every other day
+    frequency : str 
+    status : str | None = None
+    weekday : int | None = None    # needed for when frequency is set on weekly. 1 represents Sunday and 7 represents Saturday.
 
 class TaskRead(SQLModel):     
     task_id : int 
@@ -62,8 +62,8 @@ class TaskRead(SQLModel):
     notes : str | None = None
     notification_time: time
     frequency : str | None = None
-    status : str
-    start_date: datetime | None = None
+    status : str | None = None
+
 
 """
 Defines the JSON body the client sends to store a mood record. 

@@ -21,12 +21,31 @@ async function requestNotificationsPermissions() {
   if (permissions.status != "granted") {
     throw new Error("Notifications denied. Please try again"); 
   }
-  console.log("permissions: ", permissions); 
 }
 
 async function setNotificationsLocally(task) {
 
   const [hour, minute] = task.notification_time.split(":");   // split 09:30:00 in 09, 30 and 00 and assign 09 to hour and 30 to minute
+
+  let trigger;  // let is used as it allows a value to be assigned later
+
+  if (task.frequency === "daily") {
+    trigger = {
+      type: 'daily', 
+          hour: Number(hour),   // conver str in int
+          minute: Number(minute),
+    }
+  }
+
+    if (task.frequency === "weekly") {
+    trigger = {
+      type: 'weekly', 
+          hour: Number(hour),   // conver str in int
+          minute: Number(minute),
+          weekday: task.weekday
+    }
+  }
+
 
     const id= await Notifications.scheduleNotificationAsync({     
       content : {
@@ -36,31 +55,15 @@ async function setNotificationsLocally(task) {
           taskId:task.task_id      // add task id to notification information. Can be useful when If in the future the task can be marked as completed from the notification
         }
       },
+      trigger,
       
-
-
-    trigger: {    // trigger every 10 seconds for testing
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: 10,
-    }
-      /*
-      trigger: {
-        type: 'daily', 
-        hour: Number(hour),   // conver str in int
-        minute: Number(minute),
-        repeats: true // the notification is assumed to be repeated daily for simplicity
-      }
-      */
-
     })
-    console.log("Notification ID: ", id);
     
 }
 
   async function loadTaskList() {
     const response = await fetch (`http://192.168.1.65:8000/task/${PATIENT_ID}/`, {method: 'GET'})     
 
-    console.log("Response status: ", response.status);
     if (!response.ok) {
       throw new Error("Task list could not be fetched from the server")
     }
@@ -86,12 +89,18 @@ export default function App() {
       await requestNotificationsPermissions(); 
 
       const tasks = await loadTaskList();   // fetch tasks from database
+      await Notifications.cancelAllScheduledNotificationsAsync();   // existing notifications are cancelled only when a new list of tasks are successfully fetched. 
+      // This ensures the local notifications match the tasks in the database. 
+      await syncNotifications(tasks);    
+      
+      const notifications = await Notifications.getAllScheduledNotificationsAsync();
 
-      await syncNotifications(tasks);
+      console.log("Scheduled notifications:", notifications);
+
 
     } catch(error) {
 
-      console.log(error);
+      console.log(error);    
     }
   }
     // run after the component is rendered. useEffect is used for side effects, in this case fetching data from API. 
