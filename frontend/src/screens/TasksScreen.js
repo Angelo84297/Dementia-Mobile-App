@@ -3,12 +3,14 @@ import { syncNotifications, loadTaskList, BODY_TEXT_SIZE } from '../../App';   /
 import { TITLE_TEXT_SIZE, PATIENT_ID} from './HomeScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState, useEffect } from 'react';
+import { AddTaskModal } from './AddTaskScreen';
  
 const BUTTON_SIZE = 18
 
 export default function TasksScreen () {
 
     const [taskList, setTasks] = useState([]);
+    const [modalVisible, setModalVisible] = useState(false); // Controls whether add Task component is visible. Defaults to false as it's opened by the add task button
 
     // load tasks when the screen is opened
     useEffect(() => {
@@ -25,7 +27,7 @@ export default function TasksScreen () {
                     <Text style={styles.headerTitle}> To-do list </Text>
                 </View>
                 {/*Add task button. Button wraps text and icon */}  
-                <Pressable style={styles.addTaskButton} onPress={() => console.log('pressed')}>
+                <Pressable style={styles.addTaskButton} onPress={() => setModalVisible(true)}>   {/*Display "add task" component */}
                     <Ionicons name = 'add-circle' size = {BUTTON_SIZE} color = '#6200ee' />
                     <Text style={styles.buttonText}>Add task </Text> 
                 </Pressable>
@@ -58,11 +60,16 @@ export default function TasksScreen () {
 
                 />
 
+                <AddTaskModal    // remains hidden until add Task is tapped
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}   // when the cancel button is pressed it's hidden again
+                    //onAddTask={addTask}
+                />
+
 
         </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     pageContainer: {
@@ -82,7 +89,8 @@ const styles = StyleSheet.create({
         flexDirection : "row", 
         marginLeft : 290,
         alignItems: "center",  // ensure the icon is equally distant from top and bottom of the row
-        gap: 7
+        gap: 7,
+        marginBottom: 5
     },
     buttonText : {
         fontSize : BUTTON_SIZE, 
@@ -97,12 +105,12 @@ const styles = StyleSheet.create({
         borderRadius: 25, 
         paddingVertical: 30, // add space within the card
         paddingHorizontal: 20, 
-        marginVertical: 20, 
+        marginVertical: 10, 
         marginHorizontal: 20,
     }, 
     taskDescription: { 
         fontSize: 20, 
-        fontWeight:'700', 
+        fontWeight:'690', 
         marginBottom: 4,
     },
     textContainer : {      // used for container wrapping description and time to display them in a column
