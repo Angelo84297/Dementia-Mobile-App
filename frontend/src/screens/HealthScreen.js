@@ -110,7 +110,6 @@ export default function HealthScreen() {
 {/* Separating the style makes the code more readeable */}
 const styles = StyleSheet.create({ 
     header: {
-        flexDirection: 'row', 
         marginTop: 40,
         marginBottom: 15,
         marginLeft: 15

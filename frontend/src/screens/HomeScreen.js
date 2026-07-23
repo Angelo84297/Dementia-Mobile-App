@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
 const ICON_SIZE = 75  // mood icons
-const BODY_TEXT_SIZE = 20
+export const BODY_TEXT_SIZE = 20
 export const TITLE_TEXT_SIZE = 30 
 const ICON_COLOR = "#6200ee"  // mood icons
 export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
@@ -126,9 +126,8 @@ export default function HomeScreen() {
        )}
         <FlatList     // displays a scrollable list. Only renders visible items
         data={moodList}
-        
         renderItem={({item}) => 
-        <View style={[styles.listItem, {flexDirection: "row", justifyContent: "space-between", marginVertical: 15}, {alignItems: "center"}]}>  
+        <View style={[{flexDirection: "row", justifyContent: "space-between", marginVertical: 15}, {alignItems: "center"}]}>  
           <MaterialCommunityIcons name = {moodIconMap[item.mood]} size={ICON_SIZE} color={ICON_COLOR}/>    {/* need to replace emoji depending on mood */}
           <Text style={{fontSize:BODY_TEXT_SIZE}}>{moodTextMap[item.mood]}</Text>
           <Text style={{fontSize:BODY_TEXT_SIZE}}>

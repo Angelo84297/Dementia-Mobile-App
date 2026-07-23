@@ -61,25 +61,28 @@ async function setNotificationsLocally(task) {
     
 }
 
-  async function loadTaskList() {
+  export async function loadTaskList() {
     const response = await fetch (`http://192.168.1.65:8000/task/${PATIENT_ID}/`, {method: 'GET'})     
 
     if (!response.ok) {
       throw new Error("Task list could not be fetched from the server")
     }
-
     const data = await response.json();
     return data; 
   }
 
-  async function syncNotifications(tasks) {       // needs to be called when a new task is added  or deleted in the database
+  export async function syncNotifications() {       // needs to be called when a new task is added  or deleted in the database
 
-    for (const task of tasks) {      // add each task in the task list to the local notifications
-      await setNotificationsLocally(task);
+      const tasks = await loadTaskList();   // fetch tasks from database
+      await Notifications.cancelAllScheduledNotificationsAsync();   // existing notifications are cancelled only when a new list of tasks are successfully fetched. 
+      // This ensures the local notifications match the tasks in the database. 
+      for (const task of tasks) {      // add each task in the task list to the local notifications
+        await setNotificationsLocally(task);
+      }
     }
+  
 
-  }
-
+  //async function syncNotifications
 
 
 export default function App() {
@@ -87,12 +90,7 @@ export default function App() {
   async function setup() {
     try {
       await requestNotificationsPermissions(); 
-
-      const tasks = await loadTaskList();   // fetch tasks from database
-      await Notifications.cancelAllScheduledNotificationsAsync();   // existing notifications are cancelled only when a new list of tasks are successfully fetched. 
-      // This ensures the local notifications match the tasks in the database. 
-      await syncNotifications(tasks);    
-      
+      await syncNotifications(); 
       const notifications = await Notifications.getAllScheduledNotificationsAsync();
 
       console.log("Scheduled notifications:", notifications);
@@ -108,7 +106,6 @@ export default function App() {
     setup();
   }, []);  // [] makes use effect run once when the component is mounted as it tells React there are no values to keep track of for changes. 
 
-
   return (
     // Manages app navigation state
     <NavigationContainer>
@@ -116,5 +113,4 @@ export default function App() {
       <Tabs />  
     </NavigationContainer>
   )
-
 }
