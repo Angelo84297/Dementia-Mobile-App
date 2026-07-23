@@ -18,7 +18,7 @@ export default function TasksScreen () {
     }, []);
     
     return(
-        <View style={{ flex: 1 }}>
+        <View style={styles.pageContainer}>
 
                 {/*Header */}
                 <View style={styles.header}>
@@ -35,11 +35,27 @@ export default function TasksScreen () {
                 <FlatList     // displays a scrollable list. Only renders visible items
                     data={taskList}
                     renderItem={({item}) => 
-                    <View style={[{flexDirection: "row", justifyContent: "space-between", marginVertical: 15}, {alignItems: "center"}]}>  
-                        
-                        <Text style={{fontSize:BODY_TEXT_SIZE}}>{item.description}</Text>
-                    </View>}
+                    /* Task card */
+                    <View style={styles.taskContainer}>  
+                        {/*Left side of the card */}
+                        <View style={{flexDirection : 'row', alignItems: 'center'}}>
+                            <Ionicons 
+                                name = "notifications"
+                                size = {30}
+                                color = '#B2B0F6'
+                            />
+                            <View style={styles.textContainer}>
+                                <Text style={styles.taskDescription}>{item.description}</Text>
+                                <View style={styles.timeRow}> 
+                                    <Ionicons name='time-outline' size={14} color ='#8F92A1' />
+                                    <Text style={styles.timeText}>08:30 AM</Text>
+                                </View>
+                            </View> 
+                        </View>
+                    </View>
+                    }
                     keyExtractor={(item) => item.id}
+
                 />
 
 
@@ -49,6 +65,10 @@ export default function TasksScreen () {
 
 
 const styles = StyleSheet.create({
+    pageContainer: {
+        flex: 1,
+        backgroundColor: '#f9f7fb'
+    },
     header: {
         marginTop: 40,
         marginBottom: 15,
@@ -69,8 +89,35 @@ const styles = StyleSheet.create({
         fontWeight : 'bold',
         color: '#6200ee'
     },
-      
-
-
+    taskContainer: {
+        backgroundColor: '#FFFFFF',
+        flexDirection: 'row', 
+        alignItems: 'center',
+        justifyContent: 'space-between', // push left side away from 3 dots
+        borderRadius: 25, 
+        paddingVertical: 30, // add space within the card
+        paddingHorizontal: 20, 
+        marginVertical: 20, 
+        marginHorizontal: 20,
+    }, 
+    taskDescription: { 
+        fontSize: 20, 
+        fontWeight:'700', 
+        marginBottom: 4,
+    },
+    textContainer : {      // used for container wrapping description and time to display them in a column
+        marginLeft: 12, 
+        justifyContent : 'center',
+    },
+    timeRow: {
+        flexDirection : 'row',
+        alignItems: 'center'
+    }, 
+    timeText : {
+        fontSize: 13, 
+        color: '#8F92A1', 
+        marginLeft: 4,
+        fontWeight: '500',
+    }
 
 })

@@ -93,11 +93,7 @@ export default function App() {
       await syncNotifications(); 
       const notifications = await Notifications.getAllScheduledNotificationsAsync();
 
-      console.log("Scheduled notifications:", notifications);
-
-
     } catch(error) {
-
       console.log(error);    
     }
   }

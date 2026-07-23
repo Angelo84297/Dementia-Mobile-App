@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 
-const ICON_SIZE = 75  // mood icons
+const ICON_SIZE = 67  // mood icons
 export const BODY_TEXT_SIZE = 20
-export const TITLE_TEXT_SIZE = 30 
+export const TITLE_TEXT_SIZE = 32 
 const ICON_COLOR = "#6200ee"  // mood icons
 export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
 export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
@@ -107,13 +107,12 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={[styles.container, {padding: 50, justifyContent: "center"}]}> 
-      <Text style={{fontWeight: "bold", fontSize: TITLE_TEXT_SIZE}} >Good Morning, Madison!</Text>  {/* Need to replace name with patient's name */}
-      <StatusBar style="auto"/>
-      <Text style={{fontSize: BODY_TEXT_SIZE, marginVertical: 15}}>How are you feeling today? </Text>  {/* Needs to change depending on whether mood was logged*/}
-      <View style={{ 
-        flexDirection: "row", /* Align buttons in a row*/
-        justifyContent: "center"}}>  
+    <View style={[styles.pageContainer]}> 
+      {/*Greetings */}
+      <Text style={{fontWeight: "bold", fontSize: TITLE_TEXT_SIZE, marginHorizontal: 20,}} >Good Morning, Madison!</Text>  {/* Need to replace name with patient's name */}
+      <Text style={{fontSize: BODY_TEXT_SIZE, marginVertical: 10, marginHorizontal: 20,}}>How are you feeling today? </Text>  {/* Needs to change depending on whether mood was logged*/}
+      {/*Mood button row */}
+      <View style={styles.moodButtonRow}>  
           <MoodButton icon="emoticon-excited-outline" label={moodTextMap[5]} onPress={() => handlePress(5)}/>
           <MoodButton icon="emoticon-happy-outline" label={moodTextMap[4]} onPress={() => handlePress(4)}/>
           <MoodButton icon="emoticon-neutral-outline" label={moodTextMap[3]} onPress={() => handlePress(3)}/>
@@ -122,13 +121,14 @@ export default function HomeScreen() {
       </View>
       {/* Display only when there is mood items in the list */}
         {moodList.length > 0 && (    
-          <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginVertical: 15}}>Today's Mood</Text>
+          <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginBottom: 10, marginHorizontal: 20,}}>Today's Mood</Text>
        )}
         <FlatList     // displays a scrollable list. Only renders visible items
         data={moodList}
         renderItem={({item}) => 
-        <View style={[{flexDirection: "row", justifyContent: "space-between", marginVertical: 15}, {alignItems: "center"}]}>  
-          <MaterialCommunityIcons name = {moodIconMap[item.mood]} size={ICON_SIZE} color={ICON_COLOR}/>    {/* need to replace emoji depending on mood */}
+        /* Mood card */
+        <View style={styles.moodCard}>  
+          <MaterialCommunityIcons name = {moodIconMap[item.mood]} size={ICON_SIZE} color={ICON_COLOR}/>    
           <Text style={{fontSize:BODY_TEXT_SIZE}}>{moodTextMap[item.mood]}</Text>
           <Text style={{fontSize:BODY_TEXT_SIZE}}>
             { // Convert timestamp to local time
@@ -147,9 +147,34 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  pageContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
+    paddingTop: 50,
+    backgroundColor: '#f9f7fb',
   },
+  moodButtonRow : {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    marginBottom: 20,
+    marginHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25, 
+    paddingVertical: 13, // add space within the card
+    marginVertical: 20, 
+    marginHorizontal: 20,
+  },
+  moodCard: {
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    marginVertical: 15, 
+    marginHorizontal: 20,
+    alignItems: "center",
+    backgroundColor: '#FFFFFF',
+    borderRadius: 25, 
+    paddingVertical: 20, // add space within the card
+    paddingHorizontal: 20, 
+    marginVertical: 7, 
+    marginHorizontal: 20,
+  }
 });
