@@ -47,7 +47,7 @@ function MoodButton({icon, label, onPress}) {
 /*
 To update mood accepts values from 1 (awful) to 5 (excellent).
 */
-async function UpdateMood(patientId, newMood) {
+async function UpdateMood(patientId, moodValue) {
   try {
     const response = await fetch('http://192.168.1.65:8000/mood/', {  // local IP address. Await is used since the response is not returned immediately
       method: 'POST',
@@ -56,7 +56,7 @@ async function UpdateMood(patientId, newMood) {
       },
       body: JSON.stringify({   // stringify converts body in JSON object for FastAPI
         patient_id: patientId,
-        mood: newMood,
+        mood: moodValue,
       }),
     });
 

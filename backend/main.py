@@ -181,7 +181,29 @@ def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)
         models.Task.patient_id == patient_id)
         ).all()  
 
+    for task in task_list: 
+
+        if task.notification_time.tzinfo is None: 
+            # Add missing timezone information. Needed by UI to convert to local time. 
+            task.notification_time = task.notification_time.replace(tzinfo=timezone.utc)
+            print(task.notification_time)
+
     return task_list
+
+@app.post("/task/")
+def store_task(task: models.TaskInput, session : Session = Depends(get_session)): 
+
+    new_task = models.Task(
+        patient_id=task.patient_id,  
+        description=task.description,
+        notification_time=task.notification_time,
+        frequency=task.frequency,
+    )
+    session.add(new_task)  
+    session.commit() 
+    session.refresh(new_task) 
+    return new_task 
+
 
 
 def build_gemini_payload(patient_id, timezone_name : str, session: Session):  
@@ -231,7 +253,7 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
     # convert to JSON string to add in Gemini prompt. Indent = 2 used for readability
     return payload.model_dump_json(indent=2)
 
-def convert_to_local(datetime_input, timezone_name): 
+def convert_to_local(datetime_input, timezone_name):   
     # add timezone info as it's not stored in the db 
     utc_datetime = datetime_input.replace(tzinfo=UTC)
     # return datetime converted to local time

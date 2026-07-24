@@ -1,7 +1,41 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
-import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE} from './HomeScreen';
+import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Pressable, Alert } from 'react-native';
+import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE, PATIENT_ID} from './HomeScreen';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
+async function LogTask(patientId, description, notificationTime, frequency) {
+  try {
+    console.log('patientId: ', patientId);
+    console.log('description: ', description);
+    console.log('notificationTime: ', notificationTime);
+    console.log('frequency: ', frequency);
+    const response = await fetch('http://192.168.1.65:8000/task/', {  // Await is used since the response is not returned immediately
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({   // stringify converts body in JSON object for FastAPI
+        patient_id: patientId,
+        description: description,
+        notification_time: notificationTime,
+        frequency: frequency, 
+      }),
+    });
+
+    if (!response.ok) {   // response.ok is true when HTTP status indicates success 
+    throw new Error("Task log failed");  
+    }
+
+    const data = await response.json();   // new row inserted in database
+    console.log('New task logged successfully:', data);
+    Alert.alert('Task recorded', 'Your task has been recorded successfully.'); // message for the user
+    return true; // return true if log was successful 
+
+  } catch (e) {
+    console.error('Error logging task:', e);  // display error in terminal
+    Alert.alert('Task log failed', 'Please try again.'); 
+  }
+}
 
 export const AddTaskModal = ({ visible, onRequestClose }) => {
     const [description, setDescription] = useState('');  // '' is the initial state, before the user types the description
@@ -9,7 +43,12 @@ export const AddTaskModal = ({ visible, onRequestClose }) => {
     const [openPicker, setOpenPicker] = useState(false);  // invisible unless the user taps on "Select Time"
     const [frequency, setFrequency] = useState('daily'); // default to daily
 
-    const handleAdd = () => {}     // called when a new task is added. Need to add call to endpoint. 
+    const handleAdd = () => {LogTask(
+        PATIENT_ID,
+        description,
+        time,
+        frequency, 
+        )}     // called when a new task is added. 
 
     const handleCancel = () => {
         setDescription('');  // set the description to an empty string when handleCancel is called

@@ -51,7 +51,7 @@ class Task(SQLModel, table=True):
     patient_id: int = Field(foreign_key="patient.patient_id")
     description: str 
     notes : str | None = None    
-    notification_time: time
+    notification_time: datetime
     frequency : str 
     status : str | None = None
     weekday : int | None = None    # needed for when frequency is set on weekly. 1 represents Sunday and 7 represents Saturday.
@@ -60,10 +60,15 @@ class TaskRead(SQLModel):
     task_id : int 
     description: str 
     notes : str | None = None
-    notification_time: time
+    notification_time: datetime
     frequency : str | None = None
     status : str | None = None
 
+class TaskInput(SQLModel): 
+    patient_id: int = Field(foreign_key="patient.patient_id")
+    description: str    
+    notification_time: datetime # format sent by the front end
+    frequency : str  
 
 """
 Defines the JSON body the client sends to store a mood record. 
