@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
     reccomendationTitle: {
     fontWeight : 'bold',
         fontSize : 25, 
-        fontWeight : 'bold',
     },
     reccomendationBody: {
         fontSize : 25,
