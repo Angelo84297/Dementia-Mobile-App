@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, UTC
 from zoneinfo import ZoneInfo 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 import psycopg2 
 from psycopg2.extras import RealDictCursor
 from db import database_url, create_db_and_tables, get_session
@@ -203,6 +203,17 @@ def store_task(task: models.TaskInput, session : Session = Depends(get_session))
     session.commit() 
     session.refresh(new_task) 
     return new_task 
+
+@app.delete("/task/{patient_id}")
+def delete_task(task_id: int, patient_id: int, session : Session = Depends(get_session)): 
+
+    task = session.get(models.Task, task_id)
+
+    if task is None: 
+        raise HTTPException(status_code=404, detail="Task not found")   # let the client know if the task to delete can't be found
+
+    session.delete(task)
+    session.commit()
 
 
 
