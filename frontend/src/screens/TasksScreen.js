@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert } from 'react-native';
 import { syncNotifications, loadTaskList, BODY_TEXT_SIZE } from '../../App';   // need to call when tasks are updated
 import { TITLE_TEXT_SIZE, PATIENT_ID} from './HomeScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -6,6 +6,29 @@ import { useState, useEffect } from 'react';
 import { AddTaskModal } from './AddTaskScreen';
  
 const BUTTON_SIZE = 18
+
+async function DeleteTask(patientId, taskId) {
+
+    try {
+        console.log(taskId)
+        const response = await fetch(`http://192.168.1.65:8000/patients/${PATIENT_ID}/tasks/${taskId}`, {  // Await is used since the response is not returned immediately
+        method: 'DELETE',
+        });
+
+        if (!response.ok) {   // response.ok is true when HTTP status indicates success 
+        throw new Error("Task could not be deleted");  
+        }
+
+        const data = await response.json();   // new row inserted in database
+        console.log('Task deleted successfully:', data);
+        Alert.alert('Task deleted', 'The task was successfully deleted.'); // message for the user
+        return true; // return true if log was successful 
+
+    } catch(e){
+        console.error('Error deleting task:', e);  // display error in terminal
+        Alert.alert('The task could not be deleted', 'Please try again.'); 
+    }
+}
 
 export default function TasksScreen () {
 
@@ -52,8 +75,20 @@ export default function TasksScreen () {
                                     <Ionicons name='time-outline' size={14} color ='#8F92A1' />
                                     <Text style={styles.timeText}>08:30 AM</Text>
                                 </View>
-                            </View> 
+                            </View>
+                            {/* Menu button */}
+                            <View>
+                                <TouchableOpacity onPress={() => DeleteTask(PATIENT_ID, item.task_id)}>
+                                    <Ionicons
+                                        name="ellipsis-vertical"
+                                        size={24}
+                                        color="#1A1446"
+                                        />
+                                </TouchableOpacity>
+                            </View>
                         </View>
+
+
                     </View>
                     }
                     keyExtractor={(item) => item.id}

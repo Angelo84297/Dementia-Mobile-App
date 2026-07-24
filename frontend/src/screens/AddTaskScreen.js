@@ -5,10 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 async function LogTask(patientId, description, notificationTime, frequency) {
   try {
-    console.log('patientId: ', patientId);
-    console.log('description: ', description);
-    console.log('notificationTime: ', notificationTime);
-    console.log('frequency: ', frequency);
+
     const response = await fetch('http://192.168.1.65:8000/task/', {  // Await is used since the response is not returned immediately
       method: 'POST',
       headers: {
@@ -36,6 +33,8 @@ async function LogTask(patientId, description, notificationTime, frequency) {
     Alert.alert('Task log failed', 'Please try again.'); 
   }
 }
+
+
 
 export const AddTaskModal = ({ visible, onRequestClose }) => {
     const [description, setDescription] = useState('');  // '' is the initial state, before the user types the description

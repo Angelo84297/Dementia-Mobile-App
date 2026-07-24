@@ -204,8 +204,8 @@ def store_task(task: models.TaskInput, session : Session = Depends(get_session))
     session.refresh(new_task) 
     return new_task 
 
-@app.delete("/task/{patient_id}")
-def delete_task(task_id: int, patient_id: int, session : Session = Depends(get_session)): 
+@app.delete("/patients/{patient_id}/tasks/{task_id}")
+def delete_task(patient_id: int, task_id: int, session : Session = Depends(get_session)): 
 
     task = session.get(models.Task, task_id)
 
@@ -214,8 +214,6 @@ def delete_task(task_id: int, patient_id: int, session : Session = Depends(get_s
 
     session.delete(task)
     session.commit()
-
-
 
 def build_gemini_payload(patient_id, timezone_name : str, session: Session):  
 

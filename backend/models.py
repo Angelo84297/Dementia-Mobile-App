@@ -70,7 +70,6 @@ class TaskInput(SQLModel):
     notification_time: datetime # format sent by the front end
     frequency : str  
 
-
 """
 Defines the JSON body the client sends to store a mood record. 
 """
