@@ -29,25 +29,34 @@ async function LogTask(patientId, description, notificationTime, frequency) {
     return true; // return true if log was successful 
 
   } catch (e) {
-    console.error('Error logging task:', e);  // display error in terminal
+    console.error(e.message);  // display error in terminal
     Alert.alert('Task log failed', 'Please try again.'); 
+    return false
   }
 }
 
 
 
-export const AddTaskModal = ({ visible, onRequestClose }) => {
+export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {    
     const [description, setDescription] = useState('');  // '' is the initial state, before the user types the description
     const [time, setTime] = useState(null);   
     const [openPicker, setOpenPicker] = useState(false);  // invisible unless the user taps on "Select Time"
     const [frequency, setFrequency] = useState('daily'); // default to daily
 
-    const handleAdd = () => {LogTask(
-        PATIENT_ID,
-        description,
-        time,
-        frequency, 
-        )}     // called when a new task is added. 
+    const handleAdd = async () => {
+        const success = await LogTask(
+            PATIENT_ID,
+            description,
+            time,
+            frequency, 
+        )
+
+        if (success) {
+            onTaskAdded?.();     // when the task is added execute the callback functions if they exist
+            onRequestClose?.();
+        }
+    
+    }     // called when a new task is added. 
 
     const handleCancel = () => {
         setDescription('');  // set the description to an empty string when handleCancel is called

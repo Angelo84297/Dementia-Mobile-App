@@ -1,16 +1,19 @@
 import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert } from 'react-native';
-import { syncNotifications, loadTaskList, BODY_TEXT_SIZE } from '../../App';   // need to call when tasks are updated
+import { BODY_TEXT_SIZE } from '../../App';   // need to call when tasks are updated
 import { TITLE_TEXT_SIZE, PATIENT_ID} from './HomeScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState, useEffect } from 'react';
 import { AddTaskModal } from './AddTaskScreen';
+import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
+import { syncNotifications }from '../services/notifications';
+import { loadTaskList } from '../services/taskApi';
+
  
 const BUTTON_SIZE = 18
 
-async function DeleteTask(patientId, taskId) {
+async function DeleteTask(taskId) {
 
     try {
-        console.log(taskId)
         const response = await fetch(`http://192.168.1.65:8000/patients/${PATIENT_ID}/tasks/${taskId}`, {  // Await is used since the response is not returned immediately
         method: 'DELETE',
         });
@@ -19,14 +22,13 @@ async function DeleteTask(patientId, taskId) {
         throw new Error("Task could not be deleted");  
         }
 
-        const data = await response.json();   // new row inserted in database
-        console.log('Task deleted successfully:', data);
         Alert.alert('Task deleted', 'The task was successfully deleted.'); // message for the user
         return true; // return true if log was successful 
 
     } catch(e){
-        console.error('Error deleting task:', e);  // display error in terminal
-        Alert.alert('The task could not be deleted', 'Please try again.'); 
+        console.error(e.message);  // display error in terminal
+        Alert.alert('Error deleting task', 'Please try again.'); 
+        return false; 
     }
 }
 
@@ -35,11 +37,25 @@ export default function TasksScreen () {
     const [taskList, setTasks] = useState([]);
     const [modalVisible, setModalVisible] = useState(false); // Controls whether add Task component is visible. Defaults to false as it's opened by the add task button
 
-    // load tasks when the screen is opened
-    useEffect(() => {
+    function refreshTasks() {
         loadTaskList()
         .then(data => setTasks(data))
         .catch(error => console.error(error))
+        syncNotifications();   // update notifications 
+    }
+
+    async function handleDelete(taskId) {    // if an item is successfully deleted dispay the current task list
+        const response = await DeleteTask(taskId);
+
+        if (response) { 
+            refreshTasks(); 
+        }
+    }   
+
+
+    // load tasks when the screen is opened
+    useEffect(() => {
+        refreshTasks()
     }, []);
     
     return(
@@ -78,13 +94,21 @@ export default function TasksScreen () {
                             </View>
                             {/* Menu button */}
                             <View>
-                                <TouchableOpacity onPress={() => DeleteTask(PATIENT_ID, item.task_id)}>
+                            <Menu>
+                                <MenuTrigger>     
                                     <Ionicons
                                         name="ellipsis-vertical"
                                         size={24}
                                         color="#1A1446"
                                         />
-                                </TouchableOpacity>
+                                </MenuTrigger>
+
+                                <MenuOptions>
+                                    <MenuOption onSelect={() => handleDelete(item.task_id)}>   {/* Arrow function is used so it's not called immediately when the page renders */ }
+                                        <Text>Delete task</Text>
+                                    </MenuOption>
+                                </MenuOptions>
+                            </Menu>
                             </View>
                         </View>
 
@@ -97,8 +121,8 @@ export default function TasksScreen () {
 
                 <AddTaskModal    // remains hidden until add Task is tapped
                     visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}   // when the cancel button is pressed it's hidden again
-                    //onAddTask={addTask}
+                    onRequestClose={()=> setModalVisible(false)}   // when the cancel button is pressed it's hidden again
+                    onTaskAdded={()=>refreshTasks()}   // the function is passed to avoid circular dependency. 
                 />
 
 
