@@ -78,6 +78,7 @@ class MoodInput(SQLModel):
     mood: int 
 
 class MoodRead(SQLModel):  # what the UI needs to display
+    mood_id : int
     mood: int
     created_at: datetime
 

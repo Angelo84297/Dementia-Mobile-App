@@ -1,5 +1,6 @@
   import * as Notifications from "expo-notifications";
   import { loadTaskList } from "./taskApi";
+  import { convertDatetime } from "../utils/datetimeConversion";
 
   Notifications.setNotificationHandler({   // needed to show notification
   handleNotification: async () => ({
@@ -19,8 +20,8 @@
         await setNotificationsLocally(task);
       }
 
-      const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-      console.log("Scheduled notifications:", scheduled);
+      //const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+      //console.log("Scheduled notifications:", scheduled);
     }
   
   export async function requestNotificationsPermissions() {
@@ -36,9 +37,6 @@ export async function setNotificationsLocally(task) {
   const date = new Date(task.notification_time);  // datetime format allows to automatically convert to local time
   const hour = date.getHours();
   const minute = date.getMinutes(); 
-
-  console.log("Task hour: ", hour, ", Minute: ", minute);
-
 
   let trigger;  // let is used as it allows a value to be assigned later
 

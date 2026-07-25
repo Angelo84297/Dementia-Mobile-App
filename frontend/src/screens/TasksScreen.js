@@ -7,6 +7,8 @@ import { AddTaskModal } from './AddTaskScreen';
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import { syncNotifications }from '../services/notifications';
 import { loadTaskList } from '../services/taskApi';
+import { datetimeToTime } from '../utils/datetimeConversion';
+
 
  
 const BUTTON_SIZE = 18
@@ -76,46 +78,48 @@ export default function TasksScreen () {
                 <FlatList     // displays a scrollable list. Only renders visible items
                     data={taskList}
                     renderItem={({item}) => 
-                    /* Task card */
-                    <View style={styles.taskContainer}>  
-                        {/*Left side of the card */}
-                        <View style={{flexDirection : 'row', alignItems: 'center'}}>
-                            <Ionicons 
-                                name = "notifications"
-                                size = {30}
-                                color = '#B2B0F6'
-                            />
-                            <View style={styles.textContainer}>
-                                <Text style={styles.taskDescription}>{item.description}</Text>
-                                <View style={styles.timeRow}> 
-                                    <Ionicons name='time-outline' size={14} color ='#8F92A1' />
-                                    <Text style={styles.timeText}>08:30 AM</Text>
+                        /* Task card */
+                        <View style={styles.taskContainer}>  
+                            {/*Left side of the card */}
+                            <View style={{flexDirection : 'row', alignItems: 'center'}}>
+                                <Ionicons 
+                                    name = "notifications"
+                                    size = {30}
+                                    color = '#B2B0F6'
+                                />
+                                <View style={styles.textContainer}>
+                                    <Text style={styles.taskDescription}>{item.description}</Text>
+                                    <View style={styles.timeRow}> 
+                                        <Ionicons name='time-outline' size={14} color ='#8F92A1' />
+                                        <Text style={styles.timeText}> 
+                                            {datetimeToTime(item.notification_time)}     
+                                        </Text>
+                                    </View>
+                                </View>
+                                {/* Menu button */}
+                                <View>
+                                <Menu>
+                                    <MenuTrigger>     
+                                        <Ionicons
+                                            name="ellipsis-vertical"
+                                            size={24}
+                                            color="#1A1446"
+                                            />
+                                    </MenuTrigger>
+
+                                    <MenuOptions>
+                                        <MenuOption onSelect={() => handleDelete(item.task_id)}>   {/* Arrow function is used so it's not called immediately when the page renders */ }
+                                            <Text>Delete task</Text>
+                                        </MenuOption>
+                                    </MenuOptions>
+                                </Menu>
                                 </View>
                             </View>
-                            {/* Menu button */}
-                            <View>
-                            <Menu>
-                                <MenuTrigger>     
-                                    <Ionicons
-                                        name="ellipsis-vertical"
-                                        size={24}
-                                        color="#1A1446"
-                                        />
-                                </MenuTrigger>
-
-                                <MenuOptions>
-                                    <MenuOption onSelect={() => handleDelete(item.task_id)}>   {/* Arrow function is used so it's not called immediately when the page renders */ }
-                                        <Text>Delete task</Text>
-                                    </MenuOption>
-                                </MenuOptions>
-                            </Menu>
-                            </View>
-                        </View>
 
 
                     </View>
                     }
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item.task_id.toString()}
 
                 />
 

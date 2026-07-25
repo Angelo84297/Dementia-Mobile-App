@@ -139,7 +139,7 @@ export default function HomeScreen() {
             })}
             </Text>
         </View>}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.mood_id.toString()}
       />
     </View>
 
