@@ -45,7 +45,7 @@ function MoodButton({icon, label, onPress}) {
 }
 
 /*
-To update mood accepts values from 1 (awful) to 5 (excellent).
+Update mood accepts values from 1 (awful) to 5 (excellent).
 */
 async function UpdateMood(patientId, moodValue) {
   try {

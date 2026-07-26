@@ -152,19 +152,19 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
         
     return daily_record
 
-@app.post("/wellbeingadvice/{patient_id}")
+@app.post("/patients/{patient_id}/wellbeingadvice/")
 async def generate_wellbeing_advice(patient_id :int, timezone_name : str, session : Session = Depends(get_session)):  # async is used so the server can handle other requests while waiting for a response
     
     
     gemini_payload = build_gemini_payload(patient_id=patient_id, timezone_name=timezone_name, session=session)
 
-    prompt = f"""You are a supportive health and wellness companion. Analyse this dementia patient's health data and provide wellbeing advice. 
+    prompt = f"""You are a supportive wellbeing companion for users suffering from dementia. Analyse the following user's health data and accordingly provide wellbeing advice. 
 
     <patient_health_context> 
     {gemini_payload}
     </patient_health_context>
 
-    Based on the this data provide 2-3 reccomendations. Do not diagnose the patient."""
+    Provide maximum 3 concise reccomendations. Do not act as a doctor (e.g. diagnosing the user, recommending drugs). The user won't be able to reply. """
 
     # Gemini API call
     response = await genai_client.aio.models.generate_content(
@@ -222,7 +222,7 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
     # local midnight in database format (utc 0) 
     local_midnight = calculate_local_midnight(timezone_name)   
 
-    # fetch today health records
+    # fetch today health records starting from local midnight
     health_records = session.exec(
         select(models.HealthRecord).where(
             models.HealthRecord.patient_id == patient_id,
@@ -251,7 +251,7 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
         sleep_list.append(models.SleepSession(
             start_time=convert_to_local(sleep_record.start_time, timezone_name),
             end_time=convert_to_local(sleep_record.end_time, timezone_name),
-            min_awake=sleep_record.minutes_awake,
+            min_awake=sleep_record.minutes_awake,     # minutes awake included to give information about the quality of the sleep
             min_asleep=sleep_record.minutes_asleep
         ))
 

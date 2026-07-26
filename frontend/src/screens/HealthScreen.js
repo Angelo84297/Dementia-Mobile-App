@@ -7,27 +7,52 @@ import { useEffect, useState } from 'react';
 export default function HealthScreen() {
 
     const [dailyHealthRecord, setHealthRecord] = useState(null);  
+    const [wellbeingAdvice, setWellbeingAdvice] = useState(''); // defaults to empty string
 
   // Function wrapping mood GET request so it can be called more than once
   const loadHealthRecord = () => {
     // HTTP request
     fetch(`http://192.168.1.65:8000/healthsummary/${PATIENT_ID}/today?timezone_name=${encodeURIComponent(timezone)}`, {method: 'GET'})     
-    // fetch returns response object 
-      .then(response => {
+    // .then() executes when a response is returned. 
+      .then(response => {   
         if(!response.ok){
           throw new Error("Could not fetch Health Record");
         }
         return response.json();
       })
-      .then(data => {
+      .then(data => {       
         setHealthRecord(data);
       })
       .catch(error => console.error(error))
   }
 
+  async function GeminiAdvice() {
+    try {
+        const response = await fetch (`http://192.168.1.65:8000/patients/${PATIENT_ID}/wellbeingadvice/?timezone_name=${encodeURIComponent(timezone)}`, {method: 'POST'})
+
+        if(!response.ok){
+
+            throw new Error("Gemini API call was not successful.");
+            }
+
+        const data = await response.json();
+
+        setWellbeingAdvice(data.advice);  // update the advice string when data is received
+
+    } catch(e) {
+        console.log(e.message)
+    }
+  }
+
   useEffect(() => {
     loadHealthRecord(); 
+    GeminiAdvice();
   }, []);
+
+  // sed for debuggings
+  //useEffect(() => {
+    //console.log("New Gemini advice:", wellbeingAdvice);
+    //}, [wellbeingAdvice]);
 
   // convert minutes in a string showing hours and minutes.
   function minutes_to_hours (total_min) {
@@ -98,7 +123,7 @@ export default function HealthScreen() {
                             <Ionicons name ='sparkles' size={25} />
                             <Text style={styles.reccomendationTitle}> AI Wellbeing reccomandation </Text>
                         </View>
-                    <Text style={styles.reccomendationBody}> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </Text>
+                    <Text style={styles.reccomendationBody}> {wellbeingAdvice} </Text>
                     </View>
                 </View>
 
