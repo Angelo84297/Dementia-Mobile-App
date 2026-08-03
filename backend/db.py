@@ -11,7 +11,6 @@ database_url = os.getenv("database_url")   # retrieve url from env file
 # object in charge of communicating with the database. Only one needed for the whole application. 
 engine = create_engine(database_url, echo=True)  # with echo all the sql statements are printed
 
-
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)  # take the engine and use it to create all tables in metadata
 

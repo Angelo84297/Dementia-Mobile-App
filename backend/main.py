@@ -89,6 +89,13 @@ def calculate_local_midnight(timezone_name : str):
 
 @app.get("/mood/{patient_id}/today", response_model = List[models.MoodRead])   # {patient_id} is used to find mood list of a specific patient
 def retrieve_mood(patient_id : int, timezone_name : str, session : Session = Depends(get_session)): 
+
+    # fetch patient with the given patient id 
+    patient = session.get(models.Patient, patient_id)
+    # if no patient is found raise error 404 
+    if patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
     # Calculate local midnight
     local_midnight = calculate_local_midnight(timezone_name= timezone_name)
     # Query the table retrieving mood list 
@@ -158,9 +165,10 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
     
     gemini_payload = build_gemini_payload(patient_id=patient_id, timezone_name=timezone_name, session=session)
 
+    #Delimiters were used to separate different parts of the prompt as recommended in documentation. 
     prompt = f"""You are a supportive wellbeing companion for users suffering from dementia. Analyse the following user's health data and accordingly provide wellbeing advice. 
 
-    <patient_health_context> 
+    <patient_health_context>     
     {gemini_payload}
     </patient_health_context>
 
@@ -251,7 +259,7 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
         sleep_list.append(models.SleepSession(
             start_time=convert_to_local(sleep_record.start_time, timezone_name),
             end_time=convert_to_local(sleep_record.end_time, timezone_name),
-            min_awake=sleep_record.minutes_awake,     # minutes awake included to give information about the quality of the sleep
+            min_awake=sleep_record.minutes_awake,     # minutes awake included to give information about the quality sleep
             min_asleep=sleep_record.minutes_asleep
         ))
 

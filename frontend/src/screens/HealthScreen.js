@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 export default function HealthScreen() {
 
     const [dailyHealthRecord, setHealthRecord] = useState(null);  
-    const [wellbeingAdvice, setWellbeingAdvice] = useState(''); // defaults to empty string
+    const [wellbeingAdvice, setWellbeingAdvice] = useState(''); // defaults to empty string. Can add loading while the advice is generated
 
   // Function wrapping mood GET request so it can be called more than once
   const loadHealthRecord = () => {

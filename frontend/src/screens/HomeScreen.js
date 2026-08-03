@@ -1,5 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, Pressable, Alert, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Alert, FlatList } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -11,7 +10,7 @@ const ICON_COLOR = "#6200ee"  // mood icons
 export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
 export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
 
-const moodTextMap = {
+const moodTextMap = {  // maps to be combined
   1 : "Awful", 
   2 : "Bad", 
   3 : "Fair", 
@@ -47,7 +46,7 @@ function MoodButton({icon, label, onPress}) {
 /*
 Update mood accepts values from 1 (awful) to 5 (excellent).
 */
-async function UpdateMood(patientId, moodValue) {
+async function updateMood(patientId, moodValue) {
   try {
     const response = await fetch('http://192.168.1.65:8000/mood/', {  // local IP address. Await is used since the response is not returned immediately
       method: 'POST',
@@ -77,7 +76,7 @@ async function UpdateMood(patientId, moodValue) {
 
 export default function HomeScreen() {
   // List storing Today's mood list fetched from API 
-  const [moodList, setMoods] = useState([]);  // setMoods is the function used to update moodList. useState stores and updates the moodList 
+  const [moodList, setMoodList] = useState([]);  // setMoodList is the function used to update moodList. useState stores and updates the moodList 
   // Function wrapping mood GET request so it can be called more than once
   const loadMoodList = () => {
     // HTTP request
@@ -89,7 +88,7 @@ export default function HomeScreen() {
         }
         return response.json();
       })
-      .then(data => setMoods(data))
+      .then(data => setMoodList(data))
       .catch(error => console.error(error))
   }
 
@@ -100,14 +99,14 @@ export default function HomeScreen() {
 
 
   const handlePress = async (moodValue) => { 
-    const success = await UpdateMood(PATIENT_ID, moodValue);  // waits for server response
+    const success = await updateMood(PATIENT_ID, moodValue);  // waits for server response
     if (success) {   // if a new mood is logged
       loadMoodList();  // fetch mood list to make UI refresh every time a new mood is logged
     }
   }
 
   return (
-    <View style={[styles.pageContainer]}> 
+    <View style={styles.pageContainer}> 
       {/*Greetings */}
       <Text style={{fontWeight: "bold", fontSize: TITLE_TEXT_SIZE, marginHorizontal: 20,}} >Good Morning, Madison!</Text>  {/* Need to replace name with patient's name */}
       <Text style={{fontSize: BODY_TEXT_SIZE, marginVertical: 10, marginHorizontal: 20,}}>How are you feeling today? </Text>  {/* Needs to change depending on whether mood was logged*/}
@@ -162,7 +161,6 @@ const styles = StyleSheet.create({
     borderRadius: 25, 
     paddingVertical: 13, // add space within the card
     marginVertical: 20, 
-    marginHorizontal: 20,
   },
   moodCard: {
     flexDirection: "row", 
@@ -173,8 +171,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 25, 
     paddingVertical: 20, // add space within the card
-    paddingHorizontal: 20, 
-    marginVertical: 7, 
-    marginHorizontal: 20,
   }
 });

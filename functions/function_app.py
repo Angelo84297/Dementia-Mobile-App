@@ -8,9 +8,9 @@ from google_health import fetch_data_points
 app = func.FunctionApp()
 
 """
-the function app is triggered every 1 hour. 
+the function app is triggered every 15 minutes 
 """
-@app.timer_trigger(schedule="0 0 */1 * * *", arg_name="myTimer", run_on_startup=True,    # run_on_startup recommended to stay False in production
+@app.timer_trigger(schedule="0 */15 * * * *", arg_name="myTimer", run_on_startup=True,    # run_on_startup recommended to stay False in production
               use_monitor=False) 
 def fetch_hourly_health_records(myTimer: func.TimerRequest) -> None:
 
@@ -102,9 +102,9 @@ def fetch_hourly_health_records(myTimer: func.TimerRequest) -> None:
     
 
 """
-the function app is triggered every 8 hours to fetch sleep data that may happen at night or during the day. 
+the function app is triggered every 4 hours to fetch sleep data that may happen at night or during the day. 
 """
-@app.timer_trigger(schedule="0 0 */8 * * *", arg_name="myTimer", run_on_startup=True,    # run_on_startup recommended to stay False in production
+@app.timer_trigger(schedule="0 0 */4 * * *", arg_name="myTimer", run_on_startup=True,    # run_on_startup recommended to stay False in production
               use_monitor=False) 
 def fetch_sleep_records(myTimer: func.TimerRequest) -> None:
 
