@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 async function LogTask(patientId, description, notificationTime, frequency) {
   try {
-
+    // hardcoded webserver address
     const response = await fetch('http://192.168.1.65:8000/task/', {  // Await is used since the response is not returned immediately
       method: 'POST',
       headers: {

@@ -49,10 +49,6 @@ export default function HealthScreen() {
     GeminiAdvice();
   }, []);
 
-  // sed for debuggings
-  //useEffect(() => {
-    //console.log("New Gemini advice:", wellbeingAdvice);
-    //}, [wellbeingAdvice]);
 
   // convert minutes in a string showing hours and minutes.
   function minutes_to_hours (total_min) {

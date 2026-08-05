@@ -28,16 +28,6 @@ def get_db_connection():
         return None
 
 
-"""
-Defining endpoint. Tells FastAPI when to call root(). 
-When A HTTP GET request is sent to / the function root() is automatically called. 
-"/" is the base URL of the API. 
-"""
-@app.get("/")
-async def root():    # asynch is used to handle network requests
-    return {"message": "Hello World"}   # dictionary is automatically converted in JSON by FFastAPI
-
-
 @app.get("/test-db-connection")
 def test_db(): 
     try: 
@@ -50,21 +40,16 @@ def test_db():
                 "error": str(e)}
 
 
-@app.get("/api/test-users") # returns all the users in the users table
-def test_users(session: Session = Depends(get_session)):  # inject dependency
-    users = session.exec(select(models.User)).all()
-    return {"users": users}
-
-
 @app.on_event("startup")
 async def on_startup(): # triggered when the FastAPI app is started
     create_db_and_tables() 
 
-"""
-Endpoint storing a new mood log for the current user. 
-"""
+
 @app.post("/mood/")   
 async def create_mood(mood: models.MoodInput, session: Session = Depends(get_session)):  
+    """
+    Endpoint storing a new mood log for the current user. 
+    """
     new_mood = models.Mood(
         patient_id=mood.patient_id,  # mood is the object converted from the JSON body
         mood=mood.mood
@@ -75,7 +60,6 @@ async def create_mood(mood: models.MoodInput, session: Session = Depends(get_ses
     return new_mood # return stored mood
 
 def calculate_local_midnight(timezone_name : str): 
-    # Calculate now in UTC
     now_utc = datetime.now(timezone.utc)
     # Calculate user's timezone
     user_timezone = ZoneInfo(timezone_name)
@@ -264,8 +248,7 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
         ))
 
     payload = models.GeminiPayload(hourly_activity = hourly_list, sleep_sessions = sleep_list)
-    # print for debugging
-    print(payload.model_dump_json(indent=2))
+
 
     # convert to JSON string to add in Gemini prompt. Indent = 2 used for readability
     return payload.model_dump_json(indent=2)

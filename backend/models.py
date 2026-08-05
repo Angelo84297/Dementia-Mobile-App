@@ -1,3 +1,6 @@
+"""
+Data model classes
+"""
 from sqlmodel import Field, SQLModel, UniqueConstraint
 from datetime import datetime, timezone, time
 from typing import List
@@ -10,6 +13,7 @@ class User(SQLModel, table=True):  # table=True is registered in the metadata ob
     email: str | None = None # allowed to be null and set to null by default
     role: str # Patient / Caregiver
     address: str | None = None
+
 
 class Patient(SQLModel, table=True): 
     patient_id: int | None = Field(default=None, primary_key=True)

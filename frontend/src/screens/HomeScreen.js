@@ -106,42 +106,37 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.pageContainer}> 
-      {/*Greetings */}
-      <Text style={{fontWeight: "bold", fontSize: TITLE_TEXT_SIZE, marginHorizontal: 20,}} >Good Morning, Madison!</Text>  {/* Need to replace name with patient's name */}
-      <Text style={{fontSize: BODY_TEXT_SIZE, marginVertical: 10, marginHorizontal: 20,}}>How are you feeling today? </Text>  {/* Needs to change depending on whether mood was logged*/}
-      {/*Mood button row */}
-      <View style={styles.moodButtonRow}>  
-          <MoodButton icon="emoticon-excited-outline" label={moodTextMap[5]} onPress={() => handlePress(5)}/>
-          <MoodButton icon="emoticon-happy-outline" label={moodTextMap[4]} onPress={() => handlePress(4)}/>
-          <MoodButton icon="emoticon-neutral-outline" label={moodTextMap[3]} onPress={() => handlePress(3)}/>
-          <MoodButton icon="emoticon-sad-outline" label={moodTextMap[2]} onPress={() => handlePress(2)}/>
-          <MoodButton icon="emoticon-cry-outline" label={moodTextMap[1]} onPress={() => handlePress(1)}/>
+    <View style={styles.pageContainer}>
+      <Text style={{fontWeight: 'bold', fontSize: TITLE_TEXT_SIZE, marginHorizontal: 20}}>Good Morning, Madison!</Text>
+      <Text style={{fontSize: BODY_TEXT_SIZE, marginVertical: 10, marginHorizontal: 20}}>How are you feeling today?</Text>
+      <View style={styles.moodButtonRow}>
+        <MoodButton icon="emoticon-excited-outline" label={moodTextMap[5]} onPress={() => handlePress(5)} />
+        <MoodButton icon="emoticon-happy-outline" label={moodTextMap[4]} onPress={() => handlePress(4)} />
+        <MoodButton icon="emoticon-neutral-outline" label={moodTextMap[3]} onPress={() => handlePress(3)} />
+        <MoodButton icon="emoticon-sad-outline" label={moodTextMap[2]} onPress={() => handlePress(2)} />
+        <MoodButton icon="emoticon-cry-outline" label={moodTextMap[1]} onPress={() => handlePress(1)} />
       </View>
-      {/* Display only when there is mood items in the list */}
-        {moodList.length > 0 && (    
-          <Text style={{fontSize:TITLE_TEXT_SIZE, fontWeight:'bold', marginBottom: 10, marginHorizontal: 20,}}>Today's Mood</Text>
-       )}
-        <FlatList     // displays a scrollable list. Only renders visible items
+      {moodList.length > 0 && (
+        <Text style={{fontSize: TITLE_TEXT_SIZE, fontWeight: 'bold', marginBottom: 10, marginHorizontal: 20}}>Today's Mood</Text>
+      )}
+      <FlatList
         data={moodList}
-        renderItem={({item}) => 
-        /* Mood card */
-        <View style={styles.moodCard}>  
-          <MaterialCommunityIcons name = {moodIconMap[item.mood]} size={ICON_SIZE} color={ICON_COLOR}/>    
-          <Text style={{fontSize:BODY_TEXT_SIZE}}>{moodTextMap[item.mood]}</Text>
-          <Text style={{fontSize:BODY_TEXT_SIZE}}>
-            { // Convert timestamp to local time
-              new Date(item.created_at).toLocaleTimeString([], {
-                hour: "numeric",
-                minute: "2-digit",
+        renderItem={({item}) => (
+          <View style={styles.moodCard}>
+            <MaterialCommunityIcons name={moodIconMap[item.mood]} size={ICON_SIZE} color={ICON_COLOR} />
+            <Text style={{fontSize: BODY_TEXT_SIZE}}>{moodTextMap[item.mood]}</Text>
+            <Text style={{fontSize: BODY_TEXT_SIZE}}>
+              {new Date(item.created_at).toLocaleTimeString([], {
+                hour: 'numeric',
+                minute: '2-digit',
                 hour12: true,
-            })}
+              })}
             </Text>
-        </View>}
+          </View>
+        )}
         keyExtractor={(item) => item.mood_id.toString()}
       />
     </View>
-
   );
 }
 

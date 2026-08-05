@@ -11,3 +11,5 @@ azurite
 
 After installing node.js run the following command in the terminal
 npm install -g azurite
+
+Run func start in the terminal to trigger the Azure function
