@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View, Pressable, Alert, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Pressable, FlatList } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { getTodayMood, updateMood } from '../api/moodApi';
 
 
 const ICON_SIZE = 67  // mood icons
@@ -39,57 +40,20 @@ function MoodButton({icon, label, onPress}) {
       />
       <Text style={{fontSize: BODY_TEXT_SIZE}}>{label}</Text>
     </Pressable>
-
   );
-}
-
-/*
-Update mood accepts values from 1 (awful) to 5 (excellent).
-*/
-async function updateMood(patientId, moodValue) {
-  try {
-    const response = await fetch('http://192.168.1.65:8000/mood/', {  // local IP address. Await is used since the response is not returned immediately
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({   // stringify converts body in JSON object for FastAPI
-        patient_id: patientId,
-        mood: moodValue,
-      }),
-    });
-
-    if (!response.ok) {   // response.ok is true when HTTP status indicates success 
-    throw new Error("Mood update failed");  // when this line is reached the rest of the try block is skipped
-    }
-
-    const data = await response.json();   // new row inserted in database
-    console.log('Mood updated successfully:', data);
-    Alert.alert('Mood logged', 'Your mood has been recorded successfully.'); // message for the user
-    return true; // return true if mood was logged
-   // shown on the UI 
-  } catch (e) {
-    console.error('Error updating mood:', e);  // display error in terminal
-    Alert.alert('Mood update failed', 'Please try again.'); 
-  }
 }
 
 export default function HomeScreen() {
   // List storing Today's mood list fetched from API 
   const [moodList, setMoodList] = useState([]);  // setMoodList is the function used to update moodList. useState stores and updates the moodList 
-  // Function wrapping mood GET request so it can be called more than once
-  const loadMoodList = () => {
-    // HTTP request
-    fetch(`http://192.168.1.65:8000/mood/${PATIENT_ID}/today?timezone_name=${encodeURIComponent(timezone)}`, {method: 'GET'})     
-    // fetch returns response object 
-      .then(response => {
-        if(!response.ok){
-          throw new Error("Could not fetch mood list");
-        }
-        return response.json();
-      })
-      .then(data => setMoodList(data))
-      .catch(error => console.error(error))
+  // Function wrapping mood getTodayMood to keep UI separate from API call
+  const loadMoodList = async () => {
+    try {
+      const data = await getTodayMood(PATIENT_ID, timezone);
+      setMoodList(data);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   // load the mood list when the component is displayed on the screen

@@ -1,18 +1,33 @@
 import { fireEvent, render, waitFor, screen } from "@testing-library/react-native";
+import renderer, { act } from "react-test-renderer";
+import {Alert} from 'react-native';
 import HomeScreen from "./HomeScreen";
+import { updateMood, getTodayMood } from "../api/moodApi";
 
-{/* Mock every fetch call*/}
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve([]),  // empty return
-  })
-);
+// mock functions replacing API calls
+jest.mock("../api/moodApi", () => ({
+  updateMood: jest.fn(),  
+  getTodayMood: jest.fn(),
+}));
+
+// before each test reset all the mock functions
+beforeEach(() => {
+  jest.clearAllMocks();
+  getTodayMood.mockResolvedValue([]); // empty mood list 
+});
+
 
 test("Renders greeting", async () => { 
   await render(<HomeScreen />);  // render is asynchronous
   expect(screen.findByText("Good Morning, Madison!")).toBeTruthy();
   expect(screen.findByText("How are you feeling today?")).toBeTruthy();
+});
+
+/* Tests whether the saved snapshot matches the rendered screen */
+test("HomePage renders correctly", () => {
+  const tree = renderer.create(<HomeScreen />).toJSON();
+
+  expect(tree).toMatchSnapshot();  
 });
 
 
@@ -32,9 +47,15 @@ test("Renders all the mood buttons", async () => {
 })
 
 // pressing a mood log button sends request to fetch new mood list)
-test("Pressing mood button sends fetch request", async () => {
-    await render(<HomeScreen />)
-    fireEvent.press(screen.findByText("Good"));
-    expect(fetch).toHaveBeenCalled();
+test("Pressing mood button calls updateMood API ", async () => {
+    updateMood.mockResolvedValue(true);  
+    await render(<HomeScreen/>)
+
+    await act(async () => { // fire events updating state need to be wrapped in act 
+      fireEvent.press(screen.getByText("Good"));
+    })
+    
+    expect(updateMood).toHaveBeenCalledWith(1, 4); // patient id and mood value
+    ;
 })
 
