@@ -1,6 +1,5 @@
 import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert } from 'react-native';
-import { BODY_TEXT_SIZE } from '../../App';   // need to call when tasks are updated
-import { TITLE_TEXT_SIZE, PATIENT_ID} from './HomeScreen';
+import { BODY_TEXT_SIZE, TITLE_TEXT_SIZE, PATIENT_ID, SMALL_TEXT_SIZE } from './HomeScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState, useEffect } from 'react';
 import { AddTaskModal } from './AddTaskScreen';
@@ -8,10 +7,6 @@ import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-m
 import { syncNotifications }from '../services/notifications';
 import { loadTaskList } from '../services/taskApi';
 import { datetimeToTime } from '../utils/datetimeConversion';
-
-
- 
-const BUTTON_SIZE = 18
 
 async function DeleteTask(taskId) {
 
@@ -69,7 +64,7 @@ export default function TasksScreen () {
                 </View>
                 {/*Add task button. Button wraps text and icon */}  
                 <Pressable style={styles.addTaskButton} onPress={() => setModalVisible(true)}>   {/*Display "add task" component */}
-                    <Ionicons name = 'add-circle' size = {BUTTON_SIZE} color = '#6200ee' />
+                    <Ionicons name = 'add-circle' size = {SMALL_TEXT_SIZE} color = '#6200ee' />
                     <Text style={styles.buttonText}>Add task </Text> 
                 </Pressable>
 
@@ -90,7 +85,7 @@ export default function TasksScreen () {
                                 <View style={styles.textContainer}>
                                     <Text style={styles.taskDescription}>{item.description}</Text>
                                     <View style={styles.timeRow}> 
-                                        <Ionicons name='time-outline' size={14} color ='#8F92A1' />
+                                        <Ionicons name='time-outline' size={SMALL_TEXT_SIZE} color ='#8F92A1' />
                                         <Text style={styles.timeText}> 
                                             {datetimeToTime(item.notification_time)}     
                                         </Text>
@@ -156,7 +151,7 @@ const styles = StyleSheet.create({
         marginBottom: 5
     },
     buttonText : {
-        fontSize : BUTTON_SIZE, 
+        fontSize : SMALL_TEXT_SIZE, 
         fontWeight : 'bold',
         color: '#6200ee'
     },
@@ -172,7 +167,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
     }, 
     taskDescription: { 
-        fontSize: 20, 
+        fontSize: BODY_TEXT_SIZE, 
         fontWeight:'690', 
         marginBottom: 4,
     },
@@ -185,7 +180,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     }, 
     timeText : {
-        fontSize: 13, 
+        fontSize: SMALL_TEXT_SIZE, 
         color: '#8F92A1', 
         marginLeft: 4,
         fontWeight: '500',

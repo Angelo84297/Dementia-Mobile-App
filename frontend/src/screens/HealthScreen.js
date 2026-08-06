@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'; 
-import { TITLE_TEXT_SIZE, PATIENT_ID, timezone } from './HomeScreen';
+import { TITLE_TEXT_SIZE, PATIENT_ID, timezone, BODY_TEXT_SIZE } from './HomeScreen';
 import { useEffect, useState } from 'react';
 
 export default function HealthScreen() {
 
     const [dailyHealthRecord, setHealthRecord] = useState(null);  
-    const [wellbeingAdvice, setWellbeingAdvice] = useState(''); // defaults to empty string. Can add loading while the advice is generated
+    const [wellbeingAdvice, setWellbeingAdvice] = useState(null); 
+    const [isLoading, setIsLoading] = useState(true); // loading Gemini advice
 
   // Function wrapping mood GET request so it can be called more than once
   const loadHealthRecord = () => {
@@ -27,20 +28,21 @@ export default function HealthScreen() {
   }
 
   async function GeminiAdvice() {
+    setIsLoading(true);
     try {
         const response = await fetch (`http://192.168.1.65:8000/patients/${PATIENT_ID}/wellbeingadvice/?timezone_name=${encodeURIComponent(timezone)}`, {method: 'POST'})
-
         if(!response.ok){
 
             throw new Error("Gemini API call was not successful.");
             }
 
         const data = await response.json();
-
-        setWellbeingAdvice(data.advice);  // update the advice string when data is received
+        setWellbeingAdvice(data);  // update the advice string when data is received
 
     } catch(e) {
         console.log(e.message)
+    } finally {
+        setIsLoading(false)
     }
   }
 
@@ -117,9 +119,24 @@ export default function HealthScreen() {
                     <View style={[styles.reccomendationCard, { backgroundColor: '#88e1e9'}]}> 
                         <View style={styles.cardRow}>
                             <Ionicons name ='sparkles' size={25} />
-                            <Text style={styles.reccomendationTitle}> AI Wellbeing reccomandation </Text>
+                            {/* flexShrink allows the time to fit in the row */}
+                            <Text style={[styles.reccomendationTitle, { flexShrink: 1}]}> AI Wellbeing reccomandation </Text>
+                            {!isLoading && wellbeingAdvice && <Text style={styles.reccomendationTime}>
+                            {new Date(wellbeingAdvice?.created_at).toLocaleTimeString([], {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                            })}</Text>}
                         </View>
-                    <Text style={styles.reccomendationBody}> {wellbeingAdvice} </Text>
+                        {isLoading ? (
+                            <View style={styles.loadingContainer}>
+                                <ActivityIndicator size="large" color="#000000"/>
+                            </View>
+                        ) : (
+                            <Text style={styles.reccomendationBody}>
+                                {wellbeingAdvice?.content ?? "Wellbeing advice temporarily unavailable"}
+                            </Text>
+                        )}
                     </View>
                 </View>
 
@@ -154,31 +171,40 @@ const styles = StyleSheet.create({
     cardRow: {
         flexDirection: "row",   // make icon and title appear next to each other
         alignItems: 'center',
-        gap: 6   // space between icon and text
+        gap:6
     },
     cardTitle: {
-        fontSize : 18, 
+        fontSize : BODY_TEXT_SIZE, 
         fontWeight : '450'
     },
     cardValue: {
-        fontSize : 25, 
+        fontSize : BODY_TEXT_SIZE, 
         fontWeight : 'bold',
-        color: '#0A1C3A'
     },
     reccomendationCard: {
         marginTop:25, 
         borderRadius : 16,
         paddingHorizontal : 20,  // push content inward
         marginHorizontal: 16,   // space from both sides
-        paddingTop: 15
+        paddingTop: 16,
+        minHeight: 180, // ensures there is space around the ActivityIndicator
     },
     reccomendationTitle: {
-    fontWeight : 'bold',
-        fontSize : 25, 
+        flex: 1,
+        fontWeight : 'bold',
+        fontSize : 26, 
     },
     reccomendationBody: {
-        fontSize : 25,
+        fontSize : BODY_TEXT_SIZE,
         marginTop : 10
+    },
+    reccomendationTime: {
+        marginLeft: "auto",
+        fontSize: BODY_TEXT_SIZE, 
+        fontWeight: "500"
+    },
+    loadingContainer: {
+        marginTop: 20
     }
     
 })

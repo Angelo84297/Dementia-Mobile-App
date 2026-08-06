@@ -99,7 +99,7 @@ class DailyHealthRecord(SQLModel):
 
 class WellbeingAdviceRead(SQLModel):
     content : str 
-    created_at : datetime   # to add to front end # local time
+    created_at : datetime   
 
 class SleepSession(SQLModel): 
     start_time : datetime

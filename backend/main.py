@@ -164,7 +164,8 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
     if existing_advice != None : 
         return models.WellbeingAdviceRead(
             content = existing_advice.content, 
-            created_at = convert_to_local(existing_advice.created_at, timezone_name)
+            # add missing tz info
+            created_at = existing_advice.created_at.replace(tzinfo=timezone.utc),
         )
 
     else : 
@@ -210,7 +211,7 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
 
         return models.WellbeingAdviceRead(
             content = new_advice.content,
-            created_at = convert_to_local(new_advice.created_at, timezone_name) # since stored in utc + 0
+            created_at = new_advice.created_at.replace(tzinfo=timezone.utc) # # add missing tz info
         )
 
 @app.get("/task/{patient_id}")
@@ -221,12 +222,8 @@ def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)
         ).all()  
 
     for task in task_list: 
-
-        if task.notification_time.tzinfo is None: 
-            # Add missing timezone information. Needed by UI to convert to local time. 
-            task.notification_time = task.notification_time.replace(tzinfo=timezone.utc)
-            print(task.notification_time)
-
+        # Add missing timezone information. Needed by UI to convert to local time. 
+        task.notification_time = task.notification_time.replace(tzinfo=timezone.utc)
     return task_list
 
 @app.post("/task/")
@@ -305,3 +302,4 @@ def convert_to_local(datetime_input, timezone_name):
     utc_datetime = datetime_input.replace(tzinfo=UTC)
     # return datetime converted to local time
     return utc_datetime.astimezone(ZoneInfo(timezone_name))
+
