@@ -1,7 +1,7 @@
 """
 Data model classes
 """
-from sqlmodel import Field, SQLModel, UniqueConstraint
+from sqlmodel import Column, Field, SQLModel, Text, UniqueConstraint
 from datetime import datetime, timezone, time
 from typing import List
 
@@ -50,6 +50,12 @@ class Sleep(SQLModel, table=True):
         UniqueConstraint("patient_id", "end_time"),  # create unique key allowing new fetches to update existing values
     )
 
+class WellbeingAdvice(SQLModel, table=True):
+    advice_id: int | None = Field(default=None, primary_key=True) 
+    patient_id: int = Field(foreign_key="patient.patient_id")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # utc information is lost in db
+    content: str = Field(sa_column=Column(Text))  # Text is needed for the long content. 
+
 class Task(SQLModel, table=True): 
     task_id : int | None = Field(default=None, primary_key=True)
     patient_id: int = Field(foreign_key="patient.patient_id")
@@ -91,8 +97,9 @@ class DailyHealthRecord(SQLModel):
     average_heart_rate : int | None = None   # set to null automatically if no value is returned
     max_sleep_minutes : int | None = None
 
-class WellbeingAdvice(SQLModel):
-    advice : str 
+class WellbeingAdviceRead(SQLModel):
+    content : str 
+    created_at : datetime   # to add to front end # local time
 
 class SleepSession(SQLModel): 
     start_time : datetime

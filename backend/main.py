@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, UTC
+from datetime import datetime, timedelta, timezone, UTC
 from zoneinfo import ZoneInfo 
 from fastapi import FastAPI, Depends, HTTPException
 import psycopg2 
@@ -8,6 +8,7 @@ from sqlmodel import select, Session
 from typing import List
 import models
 from google import genai
+from google.genai.errors import ServerError
 import os
 from dotenv import load_dotenv
 
@@ -34,14 +35,13 @@ def test_db():
         conn = psycopg2.connect(database_url)
         conn.close()
         return {"status" : "Connection was successful"}
-    # catch the specific exception and print it. 
     except Exception as e: 
         return {"status" : "Connection failed", 
                 "error": str(e)}
 
 
 @app.on_event("startup")
-async def on_startup(): # triggered when the FastAPI app is started
+async def on_startup(): 
     create_db_and_tables() 
 
 
@@ -54,8 +54,8 @@ async def create_mood(mood: models.MoodInput, session: Session = Depends(get_ses
         patient_id=mood.patient_id,  # mood is the object converted from the JSON body
         mood=mood.mood
     )
-    session.add(new_mood)  # add created mood to current session
-    session.commit()  # write the mood record in the db 
+    session.add(new_mood)  
+    session.commit()  
     session.refresh(new_mood) # update new_mood object with mood_id and created_at values
     return new_mood # return stored mood
 
@@ -70,6 +70,9 @@ def calculate_local_midnight(timezone_name : str):
     # Convert back to UTC to match database
     return local_midnight.astimezone(timezone.utc)
 
+def calculate_six_hours_ago():    # in utc + 0 
+    now_utc = datetime.now(timezone.utc)
+    return now_utc - timedelta(hours = 6)
 
 @app.get("/mood/{patient_id}/today", response_model = List[models.MoodRead])   # {patient_id} is used to find mood list of a specific patient
 def retrieve_mood(patient_id : int, timezone_name : str, session : Session = Depends(get_session)): 
@@ -145,26 +148,70 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
 
 @app.post("/patients/{patient_id}/wellbeingadvice/")
 async def generate_wellbeing_advice(patient_id :int, timezone_name : str, session : Session = Depends(get_session)):  # async is used so the server can handle other requests while waiting for a response
+    """
+    A function to return AI wellbeing advice based on the user's data. 
+    The function checks whether an existing advice not older than six hours
+    is present in the database before prompting Gemini to generate a new one. 
+    """
     
-    
-    gemini_payload = build_gemini_payload(patient_id=patient_id, timezone_name=timezone_name, session=session)
-
-    #Delimiters were used to separate different parts of the prompt as recommended in documentation. 
-    prompt = f"""You are a supportive wellbeing companion for users suffering from dementia. Analyse the following user's health data and accordingly provide wellbeing advice. 
-
-    <patient_health_context>     
-    {gemini_payload}
-    </patient_health_context>
-
-    Provide maximum 3 concise reccomendations. Do not act as a doctor (e.g. diagnosing the user, recommending drugs). The user won't be able to reply. """
-
-    # Gemini API call
-    response = await genai_client.aio.models.generate_content(
-        model="gemini-3.5-flash",
-        contents= prompt
+    existing_advice = session.exec(select(models.WellbeingAdvice).where(
+        models.WellbeingAdvice.patient_id == patient_id,
+        models.WellbeingAdvice.created_at >= calculate_six_hours_ago() 
     )
+    .order_by(models.WellbeingAdvice.created_at.desc())
+    ).first()
 
-    return {"advice" : response.text}
+    if existing_advice != None : 
+        return models.WellbeingAdviceRead(
+            content = existing_advice.content, 
+            created_at = convert_to_local(existing_advice.created_at, timezone_name)
+        )
+
+    else : 
+    
+        gemini_payload = build_gemini_payload(patient_id=patient_id, timezone_name=timezone_name, session=session)
+
+        #Delimiters were used to separate different parts of the prompt as recommended in Gemini documentation. 
+        prompt = f"""You are a supportive wellbeing companion for users suffering from dementia. Analyse the following user's health data and accordingly provide wellbeing advice. 
+
+        <patient_health_context>     
+        {gemini_payload}
+        </patient_health_context>
+
+        Provide maximum 3 concise reccomendations. Do not act as a doctor (e.g. diagnosing the user, recommending drugs). The user won't be able to reply. """
+
+        # Gemini API call
+        try: 
+            response = await genai_client.aio.models.generate_content(
+                model="gemini-3.5-flash",
+                contents= prompt
+            )
+
+        except ServerError:
+            raise HTTPException(
+                status_code=503,
+                detail= 'Gemini is temporarily unavailable, Please try again later.'
+            )
+
+        # other unexpected Gemini errors
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=str(e)
+            )
+ 
+        new_advice = models.WellbeingAdvice(
+            patient_id = patient_id, 
+            content = response.text,
+        )
+        session.add(new_advice)
+        session.commit() 
+        session.refresh(new_advice) 
+
+        return models.WellbeingAdviceRead(
+            content = new_advice.content,
+            created_at = convert_to_local(new_advice.created_at, timezone_name) # since stored in utc + 0
+        )
 
 @app.get("/task/{patient_id}")
 def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)): 
@@ -191,9 +238,9 @@ def store_task(task: models.TaskInput, session : Session = Depends(get_session))
         notification_time=task.notification_time,
         frequency=task.frequency,
     )
-    session.add(new_task)  
+    session.add(new_task)   
     session.commit() 
-    session.refresh(new_task) 
+    session.refresh(new_task)  
     return new_task 
 
 @app.delete("/patients/{patient_id}/tasks/{task_id}")
@@ -250,8 +297,8 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
     payload = models.GeminiPayload(hourly_activity = hourly_list, sleep_sessions = sleep_list)
 
 
-    # convert to JSON string to add in Gemini prompt. Indent = 2 used for readability
-    return payload.model_dump_json(indent=2)
+    # convert to JSON string to add in Gemini prompt. 
+    return payload.model_dump_json(indent=2)  #Indent = 2 used for readability
 
 def convert_to_local(datetime_input, timezone_name):   
     # add timezone info as it's not stored in the db 
