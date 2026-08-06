@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert, Image } from 'react-native';
 import { BODY_TEXT_SIZE, TITLE_TEXT_SIZE, PATIENT_ID, SMALL_TEXT_SIZE } from './HomeScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState, useEffect } from 'react';
@@ -7,6 +7,7 @@ import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-m
 import { syncNotifications }from '../services/notifications';
 import { loadTaskList } from '../services/taskApi';
 import { datetimeToTime } from '../utils/datetimeConversion';
+import TodoImage from '../../assets/images/to-dolist-bro.png';
 
 async function DeleteTask(taskId) {
 
@@ -67,9 +68,15 @@ export default function TasksScreen () {
                     <Ionicons name = 'add-circle' size = {SMALL_TEXT_SIZE} color = '#6200ee' />
                     <Text style={styles.buttonText}>Add task </Text> 
                 </Pressable>
-
+                {/*Message for when task list is empty*/}
+                {taskList.length === 0 && (
+                    <View style={styles.instructionContainer}>
+                        <Text style={styles.instructionText}>Tap on "Add task" to add a new task to your To-do list!</Text>
+                        <Image source={TodoImage}
+                            style={{ width: 420, height: 300 }} />
+                    </View>
+                )}
                 {/* List of tasks */}
-
                 <FlatList     // displays a scrollable list. Only renders visible items
                     data={taskList}
                     renderItem={({item}) => 
@@ -184,6 +191,21 @@ const styles = StyleSheet.create({
         color: '#8F92A1', 
         marginLeft: 4,
         fontWeight: '500',
+    },
+    instructionText : {
+        fontSize: BODY_TEXT_SIZE,
+        flexWrap: 'wrap',
+        fontWeight: '450',
+        padding: 25,
+        textAlign: 'center',
+    },
+    instructionContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingVertical: 20,
+        marginTop: 100
     }
 
 })
