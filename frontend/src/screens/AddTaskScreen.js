@@ -48,6 +48,13 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
     const [openPicker, setOpenPicker] = useState(false);  // invisible unless the user taps "Select Time"
     const [frequency, setFrequency] = useState('daily'); // default to daily
 
+    // a helper functin to reset vaules of AddTaskScreen back to default.
+    const resetAddTaskScreen = () => {
+        setDescription('');
+        setTime(null); 
+        setFrequency('daily');
+    }
+
     const handleAdd = async () => {
 
         if (description.length < 6) {   // ensure the description is meaningful
@@ -67,13 +74,14 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
 
         if (success) {
             onTaskAdded?.();     // when the task is added execute the callback functions
+            resetAddTaskScreen();
             onRequestClose?.();
         }
     
     }     // called when a new task is added. 
 
     const handleCancel = () => {
-        setDescription('');  // set the description to an empty string when handleCancel is called
+        resetAddTaskScreen();
         onRequestClose();  // called when the X is pressed 
     }
 
