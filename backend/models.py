@@ -64,7 +64,7 @@ class Task(SQLModel, table=True):
     notification_time: datetime
     frequency : str 
     status : str | None = None
-    weekday : int | None = None    # needed for when frequency is set on weekly. 1 represents Sunday and 7 represents Saturday.
+    weekday : int | None = None    # needed for weekly frequency. 1 represents Sunday and 7 represents Saturday.
 
 class TaskRead(SQLModel):     
     task_id : int 
@@ -79,6 +79,7 @@ class TaskInput(SQLModel):
     description: str    
     notification_time: datetime # format sent by the front end
     frequency : str  
+    weekday: int
 
 """
 Defines the JSON body the client sends to store a mood record. 

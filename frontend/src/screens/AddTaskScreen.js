@@ -3,8 +3,9 @@ import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Pre
 import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE, PATIENT_ID} from './HomeScreen';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { setAbortController } from '../utils/setAbortController';
+import { Picker } from '@react-native-picker/picker';
 
-async function LogTask(patientId, description, notificationTime, frequency) {
+async function LogTask(patientId, description, notificationTime, frequency, weekday) {
     const {signal, clearTimer} = setAbortController(); 
 
     try {
@@ -19,6 +20,7 @@ async function LogTask(patientId, description, notificationTime, frequency) {
             description: description,
             notification_time: notificationTime,
             frequency: frequency, 
+            weekday: weekday
         }),
         signal
         });
@@ -47,7 +49,8 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
     const [time, setTime] = useState(null);   
     const [openPicker, setOpenPicker] = useState(false);  // invisible unless the user taps "Select Time"
     const [frequency, setFrequency] = useState('daily'); // default to daily
-
+    const [weekday, setWeekday] = useState(null)   //  Monday
+ 
     // a helper functin to reset vaules of AddTaskScreen back to default.
     const resetAddTaskScreen = () => {
         setDescription('');
@@ -70,6 +73,7 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
             description,
             time,
             frequency, 
+            weekday
         )
 
         if (success) {
@@ -135,6 +139,21 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
                         <Text>Weekly</Text>
                     </Pressable>
                 </View>
+                {/* Select day */ }
+                <Text style={styles.secondaryTitle}>Day</Text>
+                <Picker
+                    selectedValue={weekday}  // currently selected 
+                    onValueChange={(value) => setWeekday(value)
+                    }>
+                    <Picker.Item label={'Select day'} value={null} />
+                    <Picker.Item label={'Sunday'} value={1} />
+                    <Picker.Item label={'Monday'} value={2} />
+                    <Picker.Item label={'Tuesday'} value={3} />
+                    <Picker.Item label={'Wednesday'} value={4} />
+                    <Picker.Item label={'Thursday'} value={5} />
+                    <Picker.Item label={'Friday'} value={6} />
+                    <Picker.Item label={'Saturday'} value={7} />
+                </Picker>
 
                 <Text style={styles.secondaryTitle}>Time</Text>
                     {/*Select Time */}

@@ -234,6 +234,7 @@ def store_task(task: models.TaskInput, session : Session = Depends(get_session))
         description=task.description,
         notification_time=task.notification_time,
         frequency=task.frequency,
+        weekday=task.weekday
     )
     session.add(new_task)   
     session.commit() 
