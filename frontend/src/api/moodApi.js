@@ -1,9 +1,12 @@
 import { Alert } from "react-native";
+import { setAbortController } from "../utils/setAbortController";
 
 /*
 Update mood accepts values from 1 (awful) to 5 (excellent).
 */
 export async function updateMood(patientId, moodValue) {
+    const {signal, clearTimer} = setAbortController(); 
+    
   try {
     const response = await fetch('http://192.168.1.65:8000/mood/', {
       method: 'POST',
@@ -14,21 +17,23 @@ export async function updateMood(patientId, moodValue) {
         patient_id: patientId,
         mood: moodValue,
       }),
+      signal
     });
 
-    if (!response.ok) { // response.ok is true when HTTP status indicates success 
-      throw new Error("Mood update failed"); // when this line is reached the rest of the try block is skipped
+    clearTimer();  // cleared as no longer needed
+    if (!response.ok) {  
+      throw new Error(`Mood update failed: (${response.status})`); 
     }
-
-    const data = await response.json(); // new row inserted in database
+    const data = await response.json(); 
     console.log('Mood updated successfully:', data);
     Alert.alert('Mood logged', 'Your mood has been recorded successfully.'); // message for the user
-    return true; // return true if mood was logged
+    return true; // if mood was logged
 
     // shown on the UI 
   } catch (e) {
     console.error('Error updating mood:', e); // display error in terminal
-    Alert.alert('Mood update failed', 'Please try again.');
+    Alert.alert('Mood update failed', 'Please try again later.');
+    return false;
   }
 }
 

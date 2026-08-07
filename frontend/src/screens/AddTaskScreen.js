@@ -2,25 +2,30 @@ import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Pressable, Alert } from 'react-native';
 import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE, PATIENT_ID} from './HomeScreen';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { setAbortController } from '../utils/setAbortController';
 
 async function LogTask(patientId, description, notificationTime, frequency) {
-  try {
-    // hardcoded webserver address
-    const response = await fetch('http://192.168.1.65:8000/task/', {  // Await is used since the response is not returned immediately
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({   // stringify converts body in JSON object for FastAPI
-        patient_id: patientId,
-        description: description,
-        notification_time: notificationTime,
-        frequency: frequency, 
-      }),
-    });
+    const {signal, clearTimer} = setAbortController(); 
 
+    try {
+        // hardcoded webserver address
+        const response = await fetch('http://192.168.1.65:8000/task/', {  // Await since the response is not returned immediately
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({   // stringify converts body in JSON object for FastAPI
+            patient_id: patientId,
+            description: description,
+            notification_time: notificationTime,
+            frequency: frequency, 
+        }),
+        signal
+        });
+
+    clearTimer();
     if (!response.ok) {   // response.ok is true when HTTP status indicates success 
-    throw new Error("Task log failed");  
+    throw new Error(`Task log failed, ${response.status}`);  
     }
 
     const data = await response.json();   // new row inserted in database
@@ -29,8 +34,8 @@ async function LogTask(patientId, description, notificationTime, frequency) {
     return true; // return true if log was successful 
 
   } catch (e) {
-    console.error(e.message);  // display error in terminal
-    Alert.alert('Task log failed', 'Please try again.'); 
+    console.error(e.message); 
+    Alert.alert('Task log failed', 'Please try again later.'); 
     return false
   }
 }
@@ -114,11 +119,6 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
                 </View>
 
                 <Text style={styles.secondaryTitle}>Time</Text>
-
-                
-
-
-
                     {/*Select Time */}
                     <TouchableOpacity onPress={() => setOpenPicker(true)}>  {/*setOpenPicker expects a boolean */}
                         <Text> 
