@@ -5,11 +5,11 @@ import { getTodayMood, updateMood } from '../api/moodApi';
 
 
 const ICON_SIZE = 67  // mood icons
-export const BODY_TEXT_SIZE = 22
+export const BODY_TEXT_SIZE = 20
 export const TITLE_TEXT_SIZE = 32 
 const ICON_COLOR = "#6200ee"  // mood icons
 export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
-export const SMALL_TEXT_SIZE = 16  // used for smaller elements (e.g. buttons)
+export const SMALL_TEXT_SIZE = 18  // used for smaller elements (e.g. buttons). Recommended max 18
 export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
 
 const moodTextMap = {  // maps to be combined

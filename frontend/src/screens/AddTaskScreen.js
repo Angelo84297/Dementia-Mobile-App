@@ -45,10 +45,19 @@ async function LogTask(patientId, description, notificationTime, frequency) {
 export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {    
     const [description, setDescription] = useState('');  // '' is the initial state, before the user types the description
     const [time, setTime] = useState(null);   
-    const [openPicker, setOpenPicker] = useState(false);  // invisible unless the user taps on "Select Time"
+    const [openPicker, setOpenPicker] = useState(false);  // invisible unless the user taps "Select Time"
     const [frequency, setFrequency] = useState('daily'); // default to daily
 
     const handleAdd = async () => {
+
+        if (description.length < 6) {   // ensure the description is meaningful
+            Alert.alert('Invalid description', 'Please type more then 5 letters.');
+            return;
+        } else if (time === null ) {
+            Alert.alert('Time not selected', 'Please select a time for the task.');
+            return;
+        }
+
         const success = await LogTask(
             PATIENT_ID,
             description,
@@ -57,7 +66,7 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
         )
 
         if (success) {
-            onTaskAdded?.();     // when the task is added execute the callback functions if they exist
+            onTaskAdded?.();     // when the task is added execute the callback functions
             onRequestClose?.();
         }
     
@@ -92,6 +101,7 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
                 <TextInput style={styles.placeholder}
                     placeholder="Briefly type the description of the task"
                     value={description}
+                    maxLength={25}  // ensures description fits in the card
                     onChangeText={setDescription}    // when the user types, the input is updated by setDescription
                 />
 

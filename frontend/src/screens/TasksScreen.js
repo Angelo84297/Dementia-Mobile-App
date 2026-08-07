@@ -63,81 +63,75 @@ export default function TasksScreen () {
     return(
         <View style={styles.pageContainer}>
 
-                {/*Header */}
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}> To-do list </Text>
+            {/*Header */}
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}> To-do list </Text>
+            </View>
+            {/*Add task button. Button wraps text and icon */}  
+            <Pressable style={styles.addTaskButton} onPress={() => setModalVisible(true)}>   {/*Display "add task" component */}
+                <Ionicons name = 'add-circle' size = {SMALL_TEXT_SIZE} color = '#6200ee' />
+                <Text style={styles.buttonText}>Add task </Text> 
+            </Pressable>
+            {/*Message for when task list is empty*/}
+            {taskList.length === 0 && (
+                <View style={styles.instructionContainer}>
+                    <Text style={styles.instructionText}>Tap on "Add task" to add a new task to your To-do list!</Text>
+                    <Image source={TodoImage} style={{ width: 420, height: 300 }} />
                 </View>
-                {/*Add task button. Button wraps text and icon */}  
-                <Pressable style={styles.addTaskButton} onPress={() => setModalVisible(true)}>   {/*Display "add task" component */}
-                    <Ionicons name = 'add-circle' size = {SMALL_TEXT_SIZE} color = '#6200ee' />
-                    <Text style={styles.buttonText}>Add task </Text> 
-                </Pressable>
-                {/*Message for when task list is empty*/}
-                {taskList.length === 0 && (
-                    <View style={styles.instructionContainer}>
-                        <Text style={styles.instructionText}>Tap on "Add task" to add a new task to your To-do list!</Text>
-                        <Image source={TodoImage}
-                            style={{ width: 420, height: 300 }} />
-                    </View>
-                )}
-                {/* List of tasks */}
-                <FlatList     // displays a scrollable list. Only renders visible items
-                    data={taskList}
-                    renderItem={({item}) => 
-                        /* Task card */
-                        <View style={styles.taskContainer}>  
-                            {/*Left side of the card */}
-                            <View style={{flexDirection : 'row', alignItems: 'center'}}>
-                                <Ionicons 
-                                    name = "notifications"
-                                    size = {30}
-                                    color = '#B2B0F6'
-                                />
-                                <View style={styles.textContainer}>
-                                    <Text style={styles.taskDescription}>{item.description}</Text>
-                                    <View style={styles.timeRow}> 
-                                        <Ionicons name='time-outline' size={SMALL_TEXT_SIZE} color ='#8F92A1' />
-                                        <Text style={styles.timeText}> 
-                                            {datetimeToTime(item.notification_time)}     
-                                        </Text>
-                                    </View>
-                                </View>
-                                {/* Menu button */}
-                                <View>
-                                <Menu>
-                                    <MenuTrigger>     
-                                        <Ionicons
-                                            name="ellipsis-vertical"
-                                            size={24}
-                                            color="#1A1446"
-                                            />
-                                    </MenuTrigger>
-
-                                    <MenuOptions>
-                                        <MenuOption onSelect={() => handleDelete(item.task_id)}>   {/* Arrow function is used so it's not called immediately when the page renders */ }
-                                            <Text>Delete task</Text>
-                                        </MenuOption>
-                                    </MenuOptions>
-                                </Menu>
+            )}
+            {/* List of tasks */}
+            <FlatList     // displays a scrollable list. Only renders visible items
+                data={taskList}
+                renderItem={({item}) => 
+                    /* Task card */
+                    <View style={styles.taskContainer}>  
+                        {/*Left side of the card */}
+                        <View style={{flexDirection : 'row', alignItems: 'center'}}>
+                            <Ionicons 
+                                name = "notifications"
+                                size = {30}
+                                color = '#B2B0F6'
+                            />
+                            <View style={styles.textContainer}>
+                                <Text style={styles.taskDescription}>{item.description}</Text>
+                                <View style={styles.timeRow}> 
+                                    <Ionicons name='time-outline' size={SMALL_TEXT_SIZE} color ='#8F92A1' />
+                                    <Text style={styles.timeText}> 
+                                        {datetimeToTime(item.notification_time)}     
+                                    </Text>
                                 </View>
                             </View>
+                            {/* Menu button */}
+                            <View>
+                            <Menu>
+                                <MenuTrigger>     
+                                    <Ionicons
+                                        name="ellipsis-vertical"
+                                        size={24}
+                                        color="#1A1446"
+                                        />
+                                </MenuTrigger>
 
+                                <MenuOptions>
+                                    <MenuOption onSelect={() => handleDelete(item.task_id)}>   {/* Arrow function is used so it's not called immediately when the page renders */ }
+                                        <Text>Delete task</Text>
+                                    </MenuOption>
+                                </MenuOptions>
+                            </Menu>
+                            </View>
+                        </View>
+                </View>
+                }
+                keyExtractor={(item) => item.task_id.toString()}
+            />
 
-                    </View>
-                    }
-                    keyExtractor={(item) => item.task_id.toString()}
-
-                />
-
-                <AddTaskModal    // remains hidden until add Task is tapped
-                    visible={modalVisible}
-                    onRequestClose={()=> setModalVisible(false)}   // when the cancel button is pressed it's hidden again
-                    onTaskAdded={()=>refreshTasks()}   // the function is passed to avoid circular dependency. 
-                />
-
-
-        </View>
-    );
+            <AddTaskModal    // remains hidden until add Task is tapped
+                visible={modalVisible}
+                onRequestClose={()=> setModalVisible(false)}   // when the cancel button is pressed it's hidden again
+                onTaskAdded={()=>refreshTasks()}   // the function is passed to avoid circular dependency. 
+            />
+    </View>
+);
 }
 
 const styles = StyleSheet.create({
@@ -178,7 +172,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
     }, 
     taskDescription: { 
-        fontSize: BODY_TEXT_SIZE, 
+        fontSize: SMALL_TEXT_SIZE, 
         fontWeight:'690', 
         marginBottom: 4,
     },
@@ -194,7 +188,7 @@ const styles = StyleSheet.create({
         fontSize: SMALL_TEXT_SIZE, 
         color: '#8F92A1', 
         marginLeft: 4,
-        fontWeight: '500',
+        fontWeight: '350',
     },
     instructionText : {
         fontSize: BODY_TEXT_SIZE,
@@ -211,5 +205,4 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         marginTop: 100
     }
-
 })
