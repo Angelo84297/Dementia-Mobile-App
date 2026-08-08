@@ -1,34 +1,34 @@
-  import * as Notifications from "expo-notifications";
-  import { loadTaskList } from "./taskApi";
-  import { convertDatetime } from "../utils/datetimeConversion";
+import * as Notifications from "expo-notifications";
+import { loadTaskList } from "./taskApi";
+import { convertDatetime } from "../utils/datetimeConversion";
 
-  Notifications.setNotificationHandler({   // needed to show notification
+Notifications.setNotificationHandler({   // needed to show notification
   handleNotification: async () => ({
-    shouldShowBanner: true,   
+    shouldShowBanner: true,
     shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
 });
 
-  export async function syncNotifications() {       // needs to be called when a new task is added  or deleted in the database
+export async function syncNotifications() {       // needs to be called when a new task is added  or deleted in the database
+  console.log('sync notifications called');
+  const tasks = await loadTaskList();   // fetch tasks from database
+  await Notifications.cancelAllScheduledNotificationsAsync();   // existing notifications are cancelled only when a new list of tasks are successfully fetched. 
+  // This ensures the local notifications match the tasks in the database. 
+  for (const task of tasks) {      // add each task in the task list to the local notifications
+    await setNotificationsLocally(task);
+  }
+  //use for debugging to display current set notifications 
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  console.log("Scheduled notifications:", scheduled);
+}
 
-      const tasks = await loadTaskList();   // fetch tasks from database
-      await Notifications.cancelAllScheduledNotificationsAsync();   // existing notifications are cancelled only when a new list of tasks are successfully fetched. 
-      // This ensures the local notifications match the tasks in the database. 
-      for (const task of tasks) {      // add each task in the task list to the local notifications
-        await setNotificationsLocally(task);
-      }
+export async function requestNotificationsPermissions() {
 
-      //const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-      //console.log("Scheduled notifications:", scheduled);
-    }
-  
-  export async function requestNotificationsPermissions() {
-
-  const permissions =await Notifications.requestPermissionsAsync();   // permission is needed from the user to set local notifcations on the smartphone
+  const permissions = await Notifications.requestPermissionsAsync();   // permission is needed from the user to set local notifcations on the smartphone
   if (permissions.status != "granted") {
-    throw new Error("Notifications denied. Please try again"); 
+    throw new Error("Notifications denied. Please try again");
   }
 }
 
@@ -36,38 +36,38 @@ export async function setNotificationsLocally(task) {
 
   const date = new Date(task.notification_time);  // datetime format allows to automatically convert to local time
   const hour = date.getHours();
-  const minute = date.getMinutes(); 
+  const minute = date.getMinutes();
 
   let trigger;  // let is used as it allows a value to be assigned later
 
   if (task.frequency === "daily") {
     trigger = {
-      type: 'daily', 
-          hour: Number(hour),   // conver str in int
-          minute: Number(minute),
+      type: 'daily',
+      hour: Number(hour),   // conver str in int
+      minute: Number(minute),
     }
   }
 
-    if (task.frequency === "weekly") {
+  if (task.frequency === "weekly") {
     trigger = {
-      type: 'weekly', 
-          hour: Number(hour),   // conver str in int
-          minute: Number(minute),
-          weekday: task.weekday
+      type: 'weekly',
+      hour: Number(hour),   // conver str in int
+      minute: Number(minute),
+      weekday: task.weekday
     }
   }
 
 
-    const id= await Notifications.scheduleNotificationAsync({     
-      content : {
-        title : "Task reminder",   
-        body : task.description,    // message for the user
-        data: {
-          taskId:task.task_id      // add task id to notification information. Can be useful when If in the future the task can be marked as completed from the notification
-        }
-      },
-      trigger,
-      
-    })
-    
+  const id = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Task reminder",
+      body: task.description,    // message for the user
+      data: {
+        taskId: task.task_id      // add task id to notification information. Can be useful when If in the future the task can be marked as completed from the notification
+      }
+    },
+    trigger,
+
+  })
+
 }

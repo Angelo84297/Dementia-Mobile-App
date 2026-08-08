@@ -5,8 +5,8 @@ import { setAbortController } from "../utils/setAbortController";
 Update mood accepts values from 1 (awful) to 5 (excellent).
 */
 export async function updateMood(patientId, moodValue) {
-    const {signal, clearTimer} = setAbortController(); 
-    
+  const { signal, clearTimer } = setAbortController();
+
   try {
     const response = await fetch('http://192.168.1.65:8000/mood/', {
       method: 'POST',
@@ -21,10 +21,10 @@ export async function updateMood(patientId, moodValue) {
     });
 
     clearTimer();  // cleared as no longer needed
-    if (!response.ok) {  
-      throw new Error(`Mood update failed: (${response.status})`); 
+    if (!response.ok) {
+      throw new Error(`Mood update failed: (${response.status})`);
     }
-    const data = await response.json(); 
+    const data = await response.json();
     console.log('Mood updated successfully:', data);
     Alert.alert('Mood logged', 'Your mood has been recorded successfully.'); // message for the user
     return true; // if mood was logged

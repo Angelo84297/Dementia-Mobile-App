@@ -1,60 +1,60 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Pressable, Alert } from 'react-native';
-import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE, PATIENT_ID} from './HomeScreen';
+import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE, PATIENT_ID } from './HomeScreen';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { setAbortController } from '../utils/setAbortController';
 import { Picker } from '@react-native-picker/picker';
 
 async function LogTask(patientId, description, notificationTime, frequency, weekday) {
-    const {signal, clearTimer} = setAbortController(); 
+    const { signal, clearTimer } = setAbortController();
 
     try {
         // hardcoded webserver address
         const response = await fetch('http://192.168.1.65:8000/task/', {  // Await since the response is not returned immediately
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({   // stringify converts body in JSON object for FastAPI
-            patient_id: patientId,
-            description: description,
-            notification_time: notificationTime,
-            frequency: frequency, 
-            weekday: weekday
-        }),
-        signal
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({   // stringify converts body in JSON object for FastAPI
+                patient_id: patientId,
+                description: description,
+                notification_time: notificationTime,
+                frequency: frequency,
+                weekday: weekday
+            }),
+            signal
         });
 
-    clearTimer();
-    if (!response.ok) {   // response.ok is true when HTTP status indicates success 
-    throw new Error(`Task log failed, ${response.status}`);  
+        clearTimer();
+        if (!response.ok) {   // response.ok is true when HTTP status indicates success 
+            throw new Error(`Task log failed, ${response.status}`);
+        }
+
+        const data = await response.json();   // new row inserted in database
+        console.log('New task logged successfully:', data);
+        Alert.alert('Task recorded', 'Your task has been recorded successfully.'); // message for the user
+        return true; // return true if log was successful 
+
+    } catch (e) {
+        console.error(e.message);
+        Alert.alert('Task log failed', 'Please try again later.');
+        return false
     }
-
-    const data = await response.json();   // new row inserted in database
-    console.log('New task logged successfully:', data);
-    Alert.alert('Task recorded', 'Your task has been recorded successfully.'); // message for the user
-    return true; // return true if log was successful 
-
-  } catch (e) {
-    console.error(e.message); 
-    Alert.alert('Task log failed', 'Please try again later.'); 
-    return false
-  }
 }
 
 
 
-export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {    
+export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
     const [description, setDescription] = useState('');  // '' is the initial state, before the user types the description
-    const [time, setTime] = useState(null);   
+    const [time, setTime] = useState(null);
     const [openPicker, setOpenPicker] = useState(false);  // invisible unless the user taps "Select Time"
     const [frequency, setFrequency] = useState('daily'); // default to daily
     const [weekday, setWeekday] = useState(null)   //  Monday
- 
+
     // a helper functin to reset vaules of AddTaskScreen back to default.
     const resetAddTaskScreen = () => {
         setDescription('');
-        setTime(null); 
+        setTime(null);
         setFrequency('daily');
     }
 
@@ -63,7 +63,7 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
         if (description.length < 6) {   // ensure the description is meaningful
             Alert.alert('Invalid description', 'Please type more then 5 letters.');
             return;
-        } else if (time === null ) {
+        } else if (time === null) {
             Alert.alert('Time not selected', 'Please select a time for the task.');
             return;
         }
@@ -72,7 +72,7 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
             PATIENT_ID,
             description,
             time,
-            frequency, 
+            frequency,
             weekday
         )
 
@@ -81,7 +81,7 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
             resetAddTaskScreen();
             onRequestClose?.();
         }
-    
+
     }     // called when a new task is added. 
 
     const handleCancel = () => {
@@ -103,7 +103,7 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
 
             <View >
                 {/* X Button */}
-                <TouchableOpacity onPress={handleCancel}>  
+                <TouchableOpacity onPress={handleCancel}>
                     <Text > X </Text>
                 </TouchableOpacity>
                 <Text style={styles.title}>Add Task</Text>
@@ -139,7 +139,7 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
                         <Text>Weekly</Text>
                     </Pressable>
                 </View>
-                {/* Select day */ }
+                {/* Select day */}
                 <Text style={styles.secondaryTitle}>Day</Text>
                 <Picker
                     selectedValue={weekday}  // currently selected 
@@ -156,23 +156,23 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
                 </Picker>
 
                 <Text style={styles.secondaryTitle}>Time</Text>
-                    {/*Select Time */}
-                    <TouchableOpacity onPress={() => setOpenPicker(true)}>  {/*setOpenPicker expects a boolean */}
-                        <Text> 
-                            {time 
+                {/*Select Time */}
+                <TouchableOpacity onPress={() => setOpenPicker(true)}>  {/*setOpenPicker expects a boolean */}
+                    <Text>
+                        {time
                             ? time.toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit"
                             })
                             : "Select time"}   {/* Displayed by default when time is null */}
-                            
-                        </Text>
-                    </TouchableOpacity>
-                
+
+                    </Text>
+                </TouchableOpacity>
+
 
                 {/* display dateTimePicker when true */}
-                {openPicker &&   
-                    <DateTimePicker 
+                {openPicker &&
+                    <DateTimePicker
                         value={time ?? new Date()}  // type Date() is needed despite the user selects time
                         mode="time"   // display time
                         onChange={handleTimeChange}
@@ -196,22 +196,22 @@ const styles = StyleSheet.create({
         borderRadius: 24,
     },
     title: {
-        fontSize :  TITLE_TEXT_SIZE, 
-        fontWeight : 'bold',
+        fontSize: TITLE_TEXT_SIZE,
+        fontWeight: 'bold',
     },
     secondaryTitle: {
-        fontWeight : 'bold',
-        fontSize :  18, 
+        fontWeight: 'bold',
+        fontSize: 18,
     },
     placeholder: {
         fontSize: 16
-    }, 
-    selectedFrequency : {
+    },
+    selectedFrequency: {
         backgroundColor: '#6200ee'
     },
-    addTaskButtonText : {
-    fontWeight : 'bold',
-    fontSize : 25, 
+    addTaskButtonText: {
+        fontWeight: 'bold',
+        fontSize: 25,
     }
 
 })

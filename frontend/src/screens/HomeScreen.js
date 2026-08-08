@@ -6,32 +6,32 @@ import { getTodayMood, updateMood } from '../api/moodApi';
 
 const ICON_SIZE = 67  // mood icons
 export const BODY_TEXT_SIZE = 20
-export const TITLE_TEXT_SIZE = 32 
+export const TITLE_TEXT_SIZE = 32
 const ICON_COLOR = "#6200ee"  // mood icons
 export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
 export const SMALL_TEXT_SIZE = 18  // used for smaller elements (e.g. buttons). Recommended max 18
 export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
 
 const moodTextMap = {  // maps to be combined
-  1 : "Awful", 
-  2 : "Bad", 
-  3 : "Fair", 
-  4 : "Good", 
-  5 : "Super"
+  1: "Awful",
+  2: "Bad",
+  3: "Fair",
+  4: "Good",
+  5: "Super"
 }
 
 const moodIconMap = {
-  1 : "emoticon-cry-outline", 
-  2 : "emoticon-sad-outline", 
-  3 : "emoticon-neutral-outline", 
-  4 : "emoticon-happy-outline", 
-  5 : "emoticon-excited-outline"
+  1: "emoticon-cry-outline",
+  2: "emoticon-sad-outline",
+  3: "emoticon-neutral-outline",
+  4: "emoticon-happy-outline",
+  5: "emoticon-excited-outline"
 }
 
-function MoodButton({icon, label, onPress}) { 
+function MoodButton({ icon, label, onPress }) {
   return (
-    <Pressable 
-      style={{alignItems: "center"}} 
+    <Pressable
+      style={{ alignItems: "center" }}
       onPress={onPress}
     >
       <MaterialCommunityIcons
@@ -39,7 +39,7 @@ function MoodButton({icon, label, onPress}) {
         size={ICON_SIZE}
         color={ICON_COLOR}
       />
-      <Text style={{fontSize: BODY_TEXT_SIZE}}>{label}</Text>
+      <Text style={{ fontSize: BODY_TEXT_SIZE }}>{label}</Text>
     </Pressable>
   );
 }
@@ -59,11 +59,11 @@ export default function HomeScreen() {
 
   // load the mood list when the component is displayed on the screen
   useEffect(() => {
-    loadMoodList(); 
+    loadMoodList();
   }, []);
 
 
-  const handlePress = async (moodValue) => { 
+  const handlePress = async (moodValue) => {
     const success = await updateMood(PATIENT_ID, moodValue);  // waits for server response
     if (success) {   // if a new mood is logged
       loadMoodList();  // fetch mood list to make UI refresh every time a new mood is logged
@@ -72,8 +72,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.pageContainer}>
-      <Text style={{fontWeight: 'bold', fontSize: TITLE_TEXT_SIZE, marginHorizontal: 20}}>Good Morning, Madison!</Text>
-      <Text style={{fontSize: BODY_TEXT_SIZE, marginVertical: 10, marginHorizontal: 20}}>How are you feeling today?</Text>
+      <Text style={{ fontWeight: 'bold', fontSize: TITLE_TEXT_SIZE, marginHorizontal: 20 }}>Good Morning, Madison!</Text>
+      <Text style={{ fontSize: BODY_TEXT_SIZE, marginVertical: 10, marginHorizontal: 20 }}>How are you feeling today?</Text>
       <View style={styles.moodButtonRow}>
         <MoodButton icon="emoticon-excited-outline" label={moodTextMap[5]} onPress={() => handlePress(5)} />
         <MoodButton icon="emoticon-happy-outline" label={moodTextMap[4]} onPress={() => handlePress(4)} />
@@ -82,15 +82,15 @@ export default function HomeScreen() {
         <MoodButton icon="emoticon-cry-outline" label={moodTextMap[1]} onPress={() => handlePress(1)} />
       </View>
       {moodList.length > 0 && (
-        <Text style={{fontSize: TITLE_TEXT_SIZE, fontWeight: 'bold', marginBottom: 10, marginHorizontal: 20}}>Today's Mood</Text>
+        <Text style={{ fontSize: TITLE_TEXT_SIZE, fontWeight: 'bold', marginBottom: 10, marginHorizontal: 20 }}>Today's Mood</Text>
       )}
       <FlatList
         data={moodList}
-        renderItem={({item}) => (
+        renderItem={({ item }) => (
           <View style={styles.moodCard}>
             <MaterialCommunityIcons name={moodIconMap[item.mood]} size={ICON_SIZE} color={ICON_COLOR} />
-            <Text style={{fontSize: BODY_TEXT_SIZE}}>{moodTextMap[item.mood]}</Text>
-            <Text style={{fontSize: BODY_TEXT_SIZE}}>
+            <Text style={{ fontSize: BODY_TEXT_SIZE }}>{moodTextMap[item.mood]}</Text>
+            <Text style={{ fontSize: BODY_TEXT_SIZE }}>
               {new Date(item.created_at).toLocaleTimeString([], {
                 hour: 'numeric',
                 minute: '2-digit',
@@ -111,26 +111,26 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     backgroundColor: '#f9f7fb',
   },
-  moodButtonRow : {
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+  moodButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
     marginHorizontal: 20,
     backgroundColor: '#FFFFFF',
-    borderRadius: 25, 
+    borderRadius: 25,
     paddingVertical: 13, // add space within the card
-    marginVertical: 20, 
+    marginVertical: 20,
   },
   moodCard: {
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    marginVertical: 15, 
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginVertical: 15,
     marginHorizontal: 20,
     alignItems: "center",
     backgroundColor: '#FFFFFF',
-    borderRadius: 25, 
+    borderRadius: 25,
     paddingVertical: 20, // add space within the card
-    padding : 16, 
+    padding: 16,
   }
 });

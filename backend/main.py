@@ -214,7 +214,7 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
             created_at = new_advice.created_at.replace(tzinfo=timezone.utc) # # add missing tz info
         )
 
-@app.get("/task/{patient_id}")
+@app.get("/task/{patient_id}", response_model=List[models.TaskRead])
 def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)): 
     
     task_list = session.exec(select(models.Task).where(
@@ -222,9 +222,9 @@ def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)
         ).all()  
 
     for task in task_list: 
-        # Add missing timezone information. Needed by UI to convert to local time. 
-        task.notification_time = task.notification_time.replace(tzinfo=timezone.utc)
-    return task_list
+        # Add missing timezone information. Needed by UI to convert to local time.    
+        task.notification_time = task.notification_time.replace(tzinfo=timezone.utc)   
+    return task_list   
 
 @app.post("/task/")
 def store_task(task: models.TaskInput, session : Session = Depends(get_session)): 
@@ -254,10 +254,7 @@ def delete_task(patient_id: int, task_id: int, session : Session = Depends(get_s
 
 def build_gemini_payload(patient_id, timezone_name : str, session: Session):  
 
-    # fetch patient's age for more context
-
-    # local midnight in database format (utc 0) 
-    local_midnight = calculate_local_midnight(timezone_name)   
+    local_midnight = calculate_local_midnight(timezone_name)  # format utc 0
 
     # fetch today health records starting from local midnight
     health_records = session.exec(

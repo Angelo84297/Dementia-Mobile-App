@@ -13,34 +13,34 @@ const Tab = createBottomTabNavigator();
 export default function Tabs() {
   return (
     <Tab.Navigator screenOptions={{
-      headerShown: false, 
-      tabBarInactiveTintColor: 'black', 
+      headerShown: false,
+      tabBarInactiveTintColor: 'black',
       tabBarActiveTintColor: '#6200ee',  // bright color indicates which is the viewed page
       tabBarStyle: {
         height: 85
       },
       tabBarLabelStyle: {
-      fontSize: 14,
+        fontSize: 14,
       }
-      }}>   
-      <Tab.Screen 
-        name="Home" 
-        component={HomeScreen} 
-        options ={{
-          tabBarIcon: ({color, size}) => (
+    }}>
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="home"
               color={color}   // use color given by navigator
-              size={30}    
+              size={30}
             />
           )
         }}
       />
-      <Tab.Screen 
-        name="Health" 
+      <Tab.Screen
+        name="Health"
         component={HealthScreen}
-        options ={{
-          tabBarIcon: ({color, size}) => (
+        options={{
+          tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="heart-pulse"
               color={color}
@@ -49,11 +49,11 @@ export default function Tabs() {
           )
         }}
       />
-      <Tab.Screen 
-        name="Tasks" 
+      <Tab.Screen
+        name="Tasks"
         component={TasksScreen}
-        options ={{
-          tabBarIcon: ({color, size}) => (
+        options={{
+          tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="checkbox-marked-outline"
               color={color}
