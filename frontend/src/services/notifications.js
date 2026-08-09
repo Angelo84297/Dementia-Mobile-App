@@ -19,7 +19,7 @@ export async function syncNotifications() {       // needs to be called when a n
   for (const task of tasks) {      // add each task in the task list to the local notifications
     await setNotificationsLocally(task);
   }
-  //use for debugging to display current set notifications 
+  //use for debugging 
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   console.log("Scheduled notifications:", scheduled);
 }
@@ -44,7 +44,7 @@ export async function setNotificationsLocally(task) {
     trigger = {
       type: 'daily',
       hour: Number(hour),   // conver str in int
-      minute: Number(minute),
+      minute: Number(minute)
     }
   }
 

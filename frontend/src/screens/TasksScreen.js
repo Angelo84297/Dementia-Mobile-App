@@ -1,5 +1,5 @@
 import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert, Image } from 'react-native';
-import { BODY_TEXT_SIZE, TITLE_TEXT_SIZE, PATIENT_ID, SMALL_TEXT_SIZE } from './HomeScreen';
+import { BODY_TEXT_SIZE, TITLE_TEXT_SIZE, PATIENT_ID, SMALL_TEXT_SIZE, PRIMARY_COLOR } from './HomeScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState, useEffect } from 'react';
 import { AddTaskModal } from './AddTaskScreen';
@@ -54,6 +54,33 @@ export default function TasksScreen() {
         }
     }
 
+    function getTaskDayLabel(frequency, day) {
+
+        // if task.frequency is daily display today
+        if (frequency === 'daily') {
+            return 'Today'
+        }
+
+        const today = new Date().getDay() + 1;  // with getDay() Sunday = 0, in the backend Sunday = 1 
+
+        console.log('today is', today);
+        console.log('Input day is', day);
+        if (frequency === 'weekly' && day === today) {
+            return 'Today'
+        }
+
+        const weekdays = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+        ]
+
+        return weekdays[day - 1]
+    }
 
     // load tasks when the screen is opened
     useEffect(() => {
@@ -69,7 +96,7 @@ export default function TasksScreen() {
             </View>
             {/*Add task button. Button wraps text and icon */}
             <Pressable style={styles.addTaskButton} onPress={() => setModalVisible(true)}>   {/*Display "add task" component */}
-                <Ionicons name='add-circle' size={SMALL_TEXT_SIZE} color='#6200ee' />
+                <Ionicons name='add-circle' size={SMALL_TEXT_SIZE} color={PRIMARY_COLOR} />
                 <Text style={styles.buttonText}>Add task </Text>
             </Pressable>
             {/*Message for when task list is empty*/}
@@ -93,12 +120,18 @@ export default function TasksScreen() {
                                 color='#B2B0F6'
                             />
                             <View style={styles.textContainer}>
-                                <Text style={styles.taskDescription} >{item.description}</Text>
+                                <Text style={styles.taskDescription}>{item.description}</Text>
                                 <View style={styles.timeRow}>
-                                    <Ionicons name='time-outline' size={SMALL_TEXT_SIZE} color='#8F92A1' />
-                                    <Text style={styles.timeText}>
-                                        {datetimeToTime(item.notification_time)}
-                                    </Text>
+                                    {/* display today / week day*/}
+                                    <Ionicons
+                                        name="calendar-outline"
+                                        size={SMALL_TEXT_SIZE}
+                                        color="#8F92A1"
+                                    />
+                                    <Text style={styles.timeText}>{getTaskDayLabel(item.frequency, item.weekday)}</Text>
+                                    <Ionicons name='time-outline' style={styles.timeIcon} size={SMALL_TEXT_SIZE} color='#8F92A1' />
+                                    <Text style={styles.timeText}>{datetimeToTime(item.notification_time)}</Text>
+
                                 </View>
                             </View>
                             {/* Right side of task card */}
@@ -158,7 +191,7 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: SMALL_TEXT_SIZE,
         fontWeight: 'bold',
-        color: '#6200ee'
+        color: PRIMARY_COLOR
     },
     taskContainer: {
         backgroundColor: '#FFFFFF',
@@ -181,12 +214,12 @@ const styles = StyleSheet.create({
     },
     timeRow: {
         flexDirection: 'row',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     timeText: {
         fontSize: SMALL_TEXT_SIZE,
         color: '#8F92A1',
-        marginLeft: 4,
+        marginLeft: 5,
         fontWeight: '350',
     },
     instructionText: {
@@ -205,12 +238,14 @@ const styles = StyleSheet.create({
         marginTop: 100
     },
     taskCardLeftSide: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         alignItems: 'center',
         flex: 1,
     },
     taskCardRightSide: {
         flexDirection: 'row',
-        justify: 'flex-end'   // display at the end of the card
+    },
+    timeIcon: {
+        marginLeft: 9
     }
 })

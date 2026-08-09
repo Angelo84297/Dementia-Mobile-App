@@ -5,9 +5,9 @@ import { getTodayMood, updateMood } from '../api/moodApi';
 
 
 const ICON_SIZE = 67  // mood icons
-export const BODY_TEXT_SIZE = 20
-export const TITLE_TEXT_SIZE = 32
-const ICON_COLOR = "#6200ee"  // mood icons
+export const BODY_TEXT_SIZE = 18  
+export const TITLE_TEXT_SIZE = 37
+export const PRIMARY_COLOR = "#6200ee"  
 export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
 export const SMALL_TEXT_SIZE = 18  // used for smaller elements (e.g. buttons). Recommended max 18
 export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
@@ -37,7 +37,7 @@ function MoodButton({ icon, label, onPress }) {
       <MaterialCommunityIcons
         name={icon}
         size={ICON_SIZE}
-        color={ICON_COLOR}
+        color={PRIMARY_COLOR}
       />
       <Text style={{ fontSize: BODY_TEXT_SIZE }}>{label}</Text>
     </Pressable>
@@ -88,7 +88,7 @@ export default function HomeScreen() {
         data={moodList}
         renderItem={({ item }) => (
           <View style={styles.moodCard}>
-            <MaterialCommunityIcons name={moodIconMap[item.mood]} size={ICON_SIZE} color={ICON_COLOR} />
+            <MaterialCommunityIcons name={moodIconMap[item.mood]} size={ICON_SIZE} color={PRIMARY_COLOR} />
             <Text style={{ fontSize: BODY_TEXT_SIZE }}>{moodTextMap[item.mood]}</Text>
             <Text style={{ fontSize: BODY_TEXT_SIZE }}>
               {new Date(item.created_at).toLocaleTimeString([], {

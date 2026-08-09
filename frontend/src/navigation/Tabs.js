@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import {PRIMARY_COLOR} from '../screens/HomeScreen';
 
 // Import screens to be opened by bottom nav bar
 import HomeScreen from '../screens/HomeScreen';
@@ -15,7 +16,7 @@ export default function Tabs() {
     <Tab.Navigator screenOptions={{
       headerShown: false,
       tabBarInactiveTintColor: 'black',
-      tabBarActiveTintColor: '#6200ee',  // bright color indicates which is the viewed page
+      tabBarActiveTintColor: PRIMARY_COLOR,  // bright color indicates which is the viewed page
       tabBarStyle: {
         height: 85
       },
