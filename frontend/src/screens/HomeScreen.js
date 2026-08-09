@@ -12,7 +12,7 @@ export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implem
 export const SMALL_TEXT_SIZE = 18  // used for smaller elements (e.g. buttons). Recommended max 18
 export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
 
-const moodTextMap = {  // maps to be combined
+const moodTextMap = {  
   1: "Awful",
   2: "Bad",
   3: "Fair",
@@ -62,11 +62,10 @@ export default function HomeScreen() {
     loadMoodList();
   }, []);
 
-
   const handlePress = async (moodValue) => {
     const success = await updateMood(PATIENT_ID, moodValue);  // waits for server response
-    if (success) {   // if a new mood is logged
-      loadMoodList();  // fetch mood list to make UI refresh every time a new mood is logged
+    if (success) {   
+      loadMoodList();  // refresh UI with new mood
     }
   }
 
@@ -88,7 +87,8 @@ export default function HomeScreen() {
       <FlatList
         data={moodList}
         renderItem={({ item }) => (
-          <View style={styles.moodCard}>
+          <View style={styles.moodCard}
+          testID={`todayMood-${item.mood_id}`}>
             <MaterialCommunityIcons name={moodIconMap[item.mood]} size={ICON_SIZE} color={PRIMARY_COLOR} />
             <Text style={{ fontSize: BODY_TEXT_SIZE }}>{moodTextMap[item.mood]}</Text>
             <Text style={{ fontSize: BODY_TEXT_SIZE }}>

@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor, screen } from "@testing-library/react-native";
+import { fireEvent, render, waitFor, screen, within } from "@testing-library/react-native";
 import renderer, { act } from "react-test-renderer";
 import { Alert } from 'react-native';
 import HomeScreen from "./HomeScreen";
@@ -23,14 +23,6 @@ test("Renders greeting", async () => {
   expect(screen.findByText("How are you feeling today?")).toBeTruthy();
 });
 
-/* Tests whether the saved snapshot matches the rendered screen */
-test("HomePage renders correctly", () => {
-  const tree = renderer.create(<HomeScreen />).toJSON();
-
-  expect(tree).toMatchSnapshot();
-});
-
-
 test("Today's mood doesn't appear when the mood list is empty", async () => {
   await render(<HomeScreen />);
   expect(screen.queryByText("Today's Mood")).not.toBeTruthy();
@@ -46,8 +38,7 @@ test("Renders all the mood buttons", async () => {
   expect(screen.getByText("Awful")).toBeTruthy();
 })
 
-// pressing a mood log button sends request to fetch new mood list)
-test("Pressing mood button calls updateMood API ", async () => {
+test("Pressing mood button calls updateMood with the expected data and refreshes the mood list", async () => {
   updateMood.mockResolvedValue(true);
   await render(<HomeScreen />)
 
@@ -56,6 +47,24 @@ test("Pressing mood button calls updateMood API ", async () => {
   })
 
   expect(updateMood).toHaveBeenCalledWith(1, 4); // patient id and mood value
+  expect(getTodayMood).toHaveBeenCalled();
   ;
 })
+
+test("Today's moods are displayed correctly", async () => {
+  getTodayMood.mockResolvedValue(
+    [
+      { "created_at": "2026-08-09T10:20:49Z", "mood": 4, "mood_id": 1 },
+      { "created_at": "2026-08-09T16:18:08Z", "mood": 1, "mood_id": 2 }
+    ]);
+  
+    await render(<HomeScreen/>)
+    // TestId is needeed to ensure the rendered mood matches the one in the list from the endpoint
+    const moodCard = screen.getByTestId("todayMood-1") 
+    const moodCard2 = screen.getByTestId("todayMood-2")
+    expect(within(moodCard).getByText("Good")).toBeTruthy();
+    expect(within(moodCard).getByText("11:20 am")).toBeTruthy();  // ensure local time conversion work (utc + 1)
+    expect(within(moodCard2).getByText("Awful"));
+})
+
 

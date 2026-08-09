@@ -61,43 +61,32 @@ async def create_mood(mood: models.MoodInput, session: Session = Depends(get_ses
 
 def calculate_local_midnight(timezone_name : str): 
     now_utc = datetime.now(timezone.utc)
-    # Calculate user's timezone
     user_timezone = ZoneInfo(timezone_name)
-    # Convert utc in user local time
     now_local = now_utc.astimezone(user_timezone)
-    # Calculate user's midnight
     local_midnight = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
-    # Convert back to UTC to match database
-    return local_midnight.astimezone(timezone.utc)
+    return local_midnight.astimezone(timezone.utc) # Convert back to UTC to match data stored in database
 
-def calculate_six_hours_ago():    # in utc + 0 
+def calculate_six_hours_ago():    # in utc 0 
     now_utc = datetime.now(timezone.utc)
     return now_utc - timedelta(hours = 6)  
 
-@app.get("/mood/{patient_id}/today", response_model = List[models.MoodRead])   # {patient_id} is used to find mood list of a specific patient
+@app.get("/mood/{patient_id}/today", response_model = List[models.MoodRead])   # the response_model ensures the unnecessary data are dropped
 def retrieve_mood(patient_id : int, timezone_name : str, session : Session = Depends(get_session)): 
 
-    # fetch patient with the given patient id 
+
     patient = session.get(models.Patient, patient_id)
-    # if no patient is found raise error 404 
     if patient is None:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    # Calculate local midnight
     local_midnight = calculate_local_midnight(timezone_name= timezone_name)
-    # Query the table retrieving mood list 
+
     mood_list = session.exec(select(models.Mood).where(
-        # Filter results depending on patient id
         models.Mood.patient_id == patient_id, 
-        # Only show results for today
         models.Mood.created_at >= local_midnight)
         ).all()  
     
     for mood in mood_list: 
-        # Check if timezone info was lost when created at was saved in database. 
-        if mood.created_at.tzinfo is None: 
-            # Add missing timezone information. Needed by UI to convert to local time. 
-            mood.created_at = mood.created_at.replace(tzinfo=timezone.utc)
+        ensure_timezone_info(mood.created_at)
 
     return mood_list
 
@@ -106,7 +95,6 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
 
     local_midnight = calculate_local_midnight(timezone_name= timezone_name)
 
-
     health_records = session.exec(select(models.HealthRecord).where(
         models.HealthRecord.patient_id == patient_id, 
         models.HealthRecord.hour_block >= local_midnight
@@ -114,7 +102,7 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
 
     sleep_sessions = session.exec(select(models.Sleep).where(
         models.Sleep.patient_id == patient_id, 
-        models.Sleep.end_time >= local_midnight    # fetch all the sleep sessions ending after local midnight
+        models.Sleep.end_time >= local_midnight   # to get today sleep sessions
     )).all()
 
     daily_record = {
@@ -143,7 +131,8 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
 
     daily_record['total_step_count'] 
 
-    for sleep_session in sleep_sessions:      # find the longest sleep session of the day to display in UI
+    # find the longest sleep session of the day to display in UI. 
+    for sleep_session in sleep_sessions:      
         if sleep_session.minutes_asleep > max_minutes_asleep: 
             max_minutes_asleep = sleep_session.minutes_asleep
 
@@ -152,7 +141,7 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
         
     return daily_record
 
-@app.post("/patients/{patient_id}/wellbeingadvice/")
+@app.post("/patients/{patient_id}/wellbeingadvice/", response_model= models.WellbeingAdviceRead)
 async def generate_wellbeing_advice(patient_id :int, timezone_name : str, session : Session = Depends(get_session)):  # async is used so the server can handle other requests while waiting for a response
     """
     A function to return AI wellbeing advice based on the user's data. 
@@ -168,11 +157,7 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
     ).first()
 
     if existing_advice != None : 
-        return models.WellbeingAdviceRead(
-            content = existing_advice.content, 
-            # add missing tz info
-            created_at = existing_advice.created_at.replace(tzinfo=timezone.utc),
-        )
+        return ensure_timezone_info(existing_advice)
 
     else : 
     
@@ -217,11 +202,7 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
         session.add(new_advice)
         session.commit() 
         session.refresh(new_advice) 
-
-        return models.WellbeingAdviceRead(
-            content = new_advice.content,
-            created_at = new_advice.created_at.replace(tzinfo=timezone.utc) # # add missing tz info
-        )
+        return ensure_timezone_info(new_advice)
 
 @app.get("/task/{patient_id}", response_model=List[models.TaskRead])
 def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)): 
@@ -231,8 +212,8 @@ def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)
         ).all()  
 
     for task in task_list: 
-        # Add missing timezone information. Needed by UI to convert to local time.    
-        task.notification_time = task.notification_time.replace(tzinfo=timezone.utc)   
+        ensure_timezone_info(task.notification_time)
+
     return task_list   
 
 @app.post("/task/")
@@ -324,3 +305,12 @@ def convert_to_local(datetime_input, timezone_name):
     # return datetime converted to local time
     return utc_datetime.astimezone(ZoneInfo(timezone_name))
 
+def ensure_timezone_info(datetime):
+    """
+    A helper function adding timezone information utc 0 
+    if it was lost when data was saved in MySQL database. 
+    """
+    if datetime.tzinfo is not None:
+        return datetime
+    else :
+        return datetime.replace(tzinfo=timezone.utc)

@@ -63,13 +63,11 @@ class Task(SQLModel, table=True):
     status : str | None = None  # currently not implemented
     weekday : int | None = None    # needed for weekly frequency. 1 represents Sunday and 7 represents Saturday.
 
-class TaskRead(SQLModel):     
+class TaskRead(SQLModel):   # doesn't include patient_id as the FE doesn't need it
     task_id : int 
-    description: str 
-    notes : str | None 
+    description: str  
     notification_time: datetime
     frequency : str | None 
-    status : str | None 
     weekday : int | None
 
 class TaskInput(SQLModel): 
@@ -86,7 +84,7 @@ class MoodInput(SQLModel):
     patient_id : int 
     mood: int 
 
-class MoodRead(SQLModel):  # what the UI needs to display
+class MoodRead(SQLModel):  
     mood_id : int
     mood: int
     created_at: datetime
