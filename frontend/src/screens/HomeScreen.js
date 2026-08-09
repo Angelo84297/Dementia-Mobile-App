@@ -72,7 +72,8 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.pageContainer}>
-      <Text style={{ fontWeight: 'bold', fontSize: TITLE_TEXT_SIZE, marginHorizontal: 20 }}>Good Morning, Madison!</Text>
+      {/* User name is a placeholder */}
+      <Text style={{ fontWeight: 'bold', fontSize: TITLE_TEXT_SIZE, marginHorizontal: 20 }}>Good Morning, Madison!</Text>  
       <Text style={{ fontSize: BODY_TEXT_SIZE, marginVertical: 10, marginHorizontal: 20 }}>How are you feeling today?</Text>
       <View style={styles.moodButtonRow}>
         <MoodButton icon="emoticon-excited-outline" label={moodTextMap[5]} onPress={() => handlePress(5)} />

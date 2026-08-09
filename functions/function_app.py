@@ -78,7 +78,7 @@ def fetch_hourly_health_records(myTimer: func.TimerRequest) -> None:
             patient_id = int(os.environ["PATIENT_ID"])
 
             for hour_block in hour_buckets:
-                hourly_step_count = hour_buckets[hour_block]["stepcount"]
+                hourly_step_count = hour_buckets[hour_block]["stepcount"]   # for simplicity assign 0 in absence of data
 
                 if (hour_buckets[hour_block]["bpm_count"] > 0):   # to ensure 0/0 is avoided 
                     hr_hourly_average = hour_buckets[hour_block]["bpm_sum"]/hour_buckets[hour_block]["bpm_count"]

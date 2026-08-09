@@ -72,7 +72,7 @@ def calculate_local_midnight(timezone_name : str):
 
 def calculate_six_hours_ago():    # in utc + 0 
     now_utc = datetime.now(timezone.utc)
-    return now_utc - timedelta(hours = 6)
+    return now_utc - timedelta(hours = 6)  
 
 @app.get("/mood/{patient_id}/today", response_model = List[models.MoodRead])   # {patient_id} is used to find mood list of a specific patient
 def retrieve_mood(patient_id : int, timezone_name : str, session : Session = Depends(get_session)): 
@@ -118,16 +118,17 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
     )).all()
 
     daily_record = {
-        'total_step_count' : 0,
+        'total_step_count' : None,
         'average_heart_rate' : None, 
         'max_sleep_minutes' : None,
     }
 
     bpm_count = 0
     bpm_total = 0
+    steps_total = 0
 
     for record in health_records: 
-        daily_record['total_step_count'] += record.step_count
+        steps_total += record.step_count
         if record.average_heart_rate is not None:
             bpm_total += record.average_heart_rate
             bpm_count += 1
@@ -135,7 +136,12 @@ def retrieve_daily_health_record(patient_id: int, timezone_name : str, session :
     if bpm_total > 0:    # avoid 0/0 
         daily_record['average_heart_rate'] = round(bpm_total/bpm_count)  
 
+    if steps_total > 0:   # ensures absence of data the front end receives null
+        daily_record['total_step_count'] = steps_total
+
     max_minutes_asleep = 0
+
+    daily_record['total_step_count'] 
 
     for sleep_session in sleep_sessions:      # find the longest sleep session of the day to display in UI
         if sleep_session.minutes_asleep > max_minutes_asleep: 
@@ -179,7 +185,10 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
         {gemini_payload}
         </patient_health_context>
 
-        Provide maximum 3 concise reccomendations. Do not act as a doctor (e.g. diagnosing the user, recommending drugs). The user won't be able to reply. """
+        The minimum mood value, 1 corresponds to "Awful" and 5, the maximum, corresponds to "Super"
+        Provide maximum 3 concise reccomendations. 
+        Do not act as a doctor (e.g. diagnosing the user, recommending drugs). 
+        The user won't be able to reply. """
 
         # Gemini API call
         try: 
@@ -270,9 +279,16 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
             models.Sleep.patient_id == patient_id,
             models.Sleep.end_time >= local_midnight
     )).all()
+
+    mood_records = session.exec(
+        select(models.Mood).where(
+            models.Mood.patient_id == patient_id,
+            models.Mood.created_at >= local_midnight
+    )).all()
     
     hourly_list = []
     sleep_list = []
+    mood_list = []
 
     for health_record in health_records: 
         hourly_list.append(models.HourlyActivity(
@@ -289,7 +305,14 @@ def build_gemini_payload(patient_id, timezone_name : str, session: Session):
             min_asleep=sleep_record.minutes_asleep
         ))
 
-    payload = models.GeminiPayload(hourly_activity = hourly_list, sleep_sessions = sleep_list)
+    for mood_record in mood_records:
+        mood_list.append(models.MoodRead(
+                mood_id = mood_record.mood_id,
+                mood = mood_record.mood,
+                created_at = convert_to_local(mood_record.created_at, timezone_name)
+        ))
+
+    payload = models.GeminiPayload(hourly_activity = hourly_list, sleep_sessions = sleep_list, mood_list=mood_list)
 
 
     # convert to JSON string to add in Gemini prompt. 

@@ -108,7 +108,8 @@ export default function HealthScreen() {
                                 /* show if average bpm is not null*/
                                 ? dailyHealthRecord?.average_heart_rate + " bpm"
                                 /* show if average bpm is null*/
-                                : "No record"} </Text>
+                                : "No record"}
+                        </Text>
                     </View>
                     {/* Water cups card */}
                     <View style={[styles.card, { backgroundColor: '#5fd3e5' }]}>
@@ -117,15 +118,18 @@ export default function HealthScreen() {
                             <Text style={styles.cardTitle}> Water </Text>
                         </View>
                         {/* Placeholder  for Water log*/}
-                        <Text style={styles.cardValue}> No record </Text>
+                        <Text style={styles.cardValue}>No record</Text>
                     </View>
                     {/* Steps  card */}
                     <View style={[styles.card, { backgroundColor: '#F5A5A5' }]}>
                         <View style={styles.cardRow}>
                             <Ionicons name='footsteps' size={25} />
-                            <Text style={styles.cardTitle}> Walking </Text>
+                            <Text style={styles.cardTitle}>Walking</Text>
                         </View>
-                        <Text style={styles.cardValue}> {dailyHealthRecord?.total_step_count} steps </Text>
+                        <Text style={styles.cardValue}> {
+                            dailyHealthRecord?.total_step_count != null
+                                ? dailyHealthRecord?.total_step_count + " steps"
+                                : "No record"}</Text>
                     </View>
 
                 </View>
@@ -134,7 +138,7 @@ export default function HealthScreen() {
                         <View style={styles.cardRow}>
                             <Ionicons name='sparkles' size={25} />
                             {/* flexShrink allows the time to fit in the row */}
-                            <Text style={[styles.reccomendationTitle, { flexShrink: 1 }]}> AI Wellbeing reccomandation </Text>
+                            <Text style={[styles.reccomendationTitle, { flexShrink: 1 }]}>AI Wellbeing reccomandation</Text>
                             {!isLoading && wellbeingAdvice && <Text style={styles.reccomendationTime}>
                                 {new Date(wellbeingAdvice?.created_at).toLocaleTimeString([], {
                                     hour: 'numeric',
