@@ -2,7 +2,7 @@
 Data model classes
 """
 from sqlmodel import Column, Field, SQLModel, Text, UniqueConstraint
-from datetime import datetime, timezone, time
+from datetime import datetime, timezone
 from typing import List
 
 class Users(SQLModel, table=True):  
@@ -22,13 +22,11 @@ class Patient(SQLModel, table=True):
 class HealthRecord(SQLModel, table=True):   
     record_id: int | None = Field(default=None, primary_key=True)
     patient_id: int = Field(foreign_key="patient.patient_id")
-    # sets timestamp automatically depending on timezone every time a new health record is logged
-    hour_block: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) 
+    hour_block: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) # the database does not store the tz info
     step_count: int   # for simplicity 0 is assigned in absence of data 
     average_heart_rate: int | None = None
-
     __table_args__ = (
-        UniqueConstraint("patient_id", "hour_block"),  
+        UniqueConstraint("patient_id", "hour_block"),  # avoids data duplication
     )
 
 class Mood(SQLModel, table=True): 
@@ -46,23 +44,23 @@ class Sleep(SQLModel, table=True):
     minutes_awake: int 
 
     __table_args__ = (
-        UniqueConstraint("patient_id", "end_time"),  # create unique key allowing new fetches to update existing values
+        UniqueConstraint("patient_id", "start_time"),  # start_time was picked since stable. end_time may be updated by Google Health. 
     )
 
 class WellbeingAdvice(SQLModel, table=True):
     advice_id: int | None = Field(default=None, primary_key=True) 
     patient_id: int = Field(foreign_key="patient.patient_id")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))  # utc information is lost in db
-    content: str = Field(sa_column=Column(Text))  # Text is needed for the long content. 
+    content: str = Field(sa_column=Column(Text))  # Text is used as the Gemini response is long.  
 
 class Task(SQLModel, table=True): 
     task_id : int | None = Field(default=None, primary_key=True)
     patient_id: int = Field(foreign_key="patient.patient_id")
     description: str 
-    notes : str | None = None    
+    notes : str | None = None   # currently not implemented
     notification_time: datetime
     frequency : str 
-    status : str | None = None
+    status : str | None = None  # currently not implemented
     weekday : int | None = None    # needed for weekly frequency. 1 represents Sunday and 7 represents Saturday.
 
 class TaskRead(SQLModel):     
