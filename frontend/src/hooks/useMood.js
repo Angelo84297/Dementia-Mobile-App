@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getTodayMood, updateMood } from "../api/moodApi";
 import { PATIENT_ID, timezone } from "../screens/HomeScreen";
+import { API_URL } from "../config/apiConfig.js";
 
 
 export function useMood() {
@@ -18,9 +19,11 @@ export function useMood() {
 
   const recordMood = async (moodValue) => {
     const success = await updateMood(PATIENT_ID, moodValue); // waits for server response
+    
     if (success) {
       loadMoodList(); // refresh UI with new mood
     }
+    return success 
   };
 
   // load the mood list when the component is displayed on the screen

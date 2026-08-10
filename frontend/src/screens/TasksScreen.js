@@ -9,11 +9,12 @@ import { loadTaskList } from '../services/taskApi';
 import { datetimeToTime } from '../utils/datetimeConversion';
 import TodoImage from '../../assets/images/to-dolist-bro.png';
 import { setAbortController } from '../utils/setAbortController';
+import { API_URL } from '../config/apiConfig.js';
 
 async function DeleteTask(taskId) {
     const { signal, clearTimer } = setAbortController()
     try {
-        const response = await fetch(`http://192.168.1.65:8000/patients/${PATIENT_ID}/tasks/${taskId}`, {  // Await is used since the response is not returned immediately
+        const response = await fetch(`${API_URL}/patients/${PATIENT_ID}/tasks/${taskId}`, {  // Await is used since the response is not returned immediately
             method: 'DELETE',
             signal
         });

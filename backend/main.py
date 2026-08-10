@@ -86,7 +86,7 @@ def retrieve_mood(patient_id : int, timezone_name : str, session : Session = Dep
         ).all()  
     
     for mood in mood_list: 
-        ensure_timezone_info(mood.created_at)
+        mood.created_at = ensure_timezone_info(mood.created_at)
 
     return mood_list
 
@@ -156,10 +156,11 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
     .order_by(models.WellbeingAdvice.created_at.desc())
     ).first()
 
-    if existing_advice != None : 
-        return ensure_timezone_info(existing_advice)
+    if existing_advice is not None:
+        existing_advice.created_at = ensure_timezone_info(existing_advice.created_at)
+        return existing_advice
 
-    else : 
+    else:
     
         gemini_payload = build_gemini_payload(patient_id=patient_id, timezone_name=timezone_name, session=session)
 
@@ -202,7 +203,8 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
         session.add(new_advice)
         session.commit() 
         session.refresh(new_advice) 
-        return ensure_timezone_info(new_advice)
+        new_advice.created_at = ensure_timezone_info(new_advice.created_at)
+        return new_advice
 
 @app.get("/task/{patient_id}", response_model=List[models.TaskRead])
 def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)): 
@@ -212,7 +214,7 @@ def retrieve_task_list(patient_id :int, session : Session = Depends(get_session)
         ).all()  
 
     for task in task_list: 
-        ensure_timezone_info(task.notification_time)
+        task.notification_time = ensure_timezone_info(task.notification_time)
 
     return task_list   
 

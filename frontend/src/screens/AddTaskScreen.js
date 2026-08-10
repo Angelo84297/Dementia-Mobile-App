@@ -5,6 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { setAbortController } from '../utils/setAbortController';
 import { Picker } from '@react-native-picker/picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { API_URL } from '../config/apiConfig';
 
 const FIELD_COLOR = '#F8F8FD'
 const FIELD_HEIGHT = 55
@@ -15,7 +16,7 @@ async function LogTask(patientId, description, notificationTime, frequency, week
 
     try {
         // hardcoded webserver address
-        const response = await fetch('http://192.168.1.65:8000/task/', {  // Await since the response is not returned immediately
+        const response = await fetch(`${API_URL}/task/`, {  // Await since the response is not returned immediately
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

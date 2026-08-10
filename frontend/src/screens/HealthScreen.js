@@ -4,6 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { TITLE_TEXT_SIZE, PATIENT_ID, timezone, BODY_TEXT_SIZE } from './HomeScreen';
 import { useEffect, useState } from 'react';
 import { setAbortController } from '../utils/setAbortController';
+import { API_URL } from '../config/apiConfig.js';
 
 export default function HealthScreen() {
 
@@ -13,8 +14,8 @@ export default function HealthScreen() {
 
     // Function wrapping mood GET request so it can be called more than once
     const loadHealthRecord = () => {
-        // HTTP request
-        fetch(`http://192.168.1.65:8000/healthsummary/${PATIENT_ID}/today?timezone_name=${encodeURIComponent(timezone)}`,
+
+        fetch(`${API_URL}/healthsummary/${PATIENT_ID}/today?timezone_name=${encodeURIComponent(timezone)}`,
             {
                 method: 'GET',
             })

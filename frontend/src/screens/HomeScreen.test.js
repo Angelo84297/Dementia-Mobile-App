@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import HomeScreen from "./HomeScreen";
 import { useMood } from '../hooks/useMood';
+import {Alert} from 'react-native';
 
 jest.mock("../hooks/useMood", () => ({
   useMood: jest.fn()
@@ -9,6 +10,8 @@ jest.mock("../hooks/useMood", () => ({
 jest.mock("@expo/vector-icons", () => ({
   MaterialCommunityIcons: () => null,  // avoids loading icons as it doesn't need to be tested
 }));
+
+jest.spyOn(Alert, "alert"); 
 
 const mockRecordMood = jest.fn()
 
@@ -79,4 +82,32 @@ test("Moods in the moodList are displayed correctly", () => {
   expect(within(moodCard2).getByText("Awful"));
 })
 
+test("Success alert is displayed when mood log succeeds ", async () => {
+  mockRecordMood.mockResolvedValue(true); // when recordMood returns true
+   
+  render(<HomeScreen />)
 
+  fireEvent.press(screen.getByText("Good"));
+
+  await waitFor(() => {
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "Mood logged", "Your mood has been recorded successfully."
+    )
+  })
+   
+})
+
+test("displays failure alert when mood log is not successful", async () => {
+  mockRecordMood.mockResolvedValue(false);
+
+  render(<HomeScreen />)
+
+  fireEvent.press(screen.getByText("Good"));
+
+  await waitFor(() => {
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'Mood update failed', 'Please try again later.'
+    )
+  })
+
+})

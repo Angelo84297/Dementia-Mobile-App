@@ -1,5 +1,5 @@
-import { Alert } from "react-native";
 import { setAbortController } from "../utils/setAbortController";
+import { API_URL } from "../config/apiConfig.js";
 
 /*
 Update mood accepts values from 1 (awful) to 5 (excellent).
@@ -8,7 +8,7 @@ export async function updateMood(patientId, moodValue) {
   const { signal, clearTimer } = setAbortController();
 
   try {
-    const response = await fetch('http://192.168.1.65:8000/mood/', {
+    const response = await fetch(`${API_URL}/mood/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -25,21 +25,21 @@ export async function updateMood(patientId, moodValue) {
       throw new Error(`Mood update failed: (${response.status})`);
     }
     const data = await response.json();
-    console.log('Mood updated successfully:', data);
-    Alert.alert('Mood logged', 'Your mood has been recorded successfully.'); // message for the user
+    
     return true; // if mood was logged
 
     // shown on the UI 
   } catch (e) {
     console.error('Error updating mood:', e); // display error in terminal
-    Alert.alert('Mood update failed', 'Please try again later.');
+    
     return false;
   }
 }
 
 export async function getTodayMood(patientId, timezoneName) {
+
   const response = await fetch(
-    `http://192.168.1.65:8000/mood/${patientId}/today?timezone_name=${encodeURIComponent(timezoneName)}`,
+    `${API_URL}/mood/${patientId}/today?timezone_name=${encodeURIComponent(timezoneName)}`,
     { method: 'GET' }
   );
 
