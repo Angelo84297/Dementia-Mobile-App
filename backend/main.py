@@ -165,7 +165,7 @@ async def generate_wellbeing_advice(patient_id :int, timezone_name : str, sessio
         gemini_payload = build_gemini_payload(patient_id=patient_id, timezone_name=timezone_name, session=session)
 
         #Delimiters were used to separate different parts of the prompt as recommended in Gemini documentation. 
-        prompt = f"""You are a supportive wellbeing companion for users suffering from dementia. Analyse the following user's health data and accordingly provide wellbeing advice. 
+        prompt = f"""You are a supportive wellbeing companion for users suffering from dementia. Analyse the user's health data and provide wellbeing advice. 
 
         <patient_health_context>     
         {gemini_payload}

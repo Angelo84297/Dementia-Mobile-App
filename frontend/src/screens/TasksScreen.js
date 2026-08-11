@@ -2,95 +2,32 @@ import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert, I
 import { BODY_TEXT_SIZE, TITLE_TEXT_SIZE, SMALL_TEXT_SIZE, PRIMARY_COLOR } from '../config/theme.js';
 import { PATIENT_ID } from '../config/config.js';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AddTaskModal } from './AddTaskScreen';
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
-import { syncNotifications } from '../services/notifications';
-import { loadTaskList } from '../api/taskApi.js';
+import { deleteTask } from '../api/taskApi.js';
 import { datetimeToTime } from '../utils/timeConversion.js';
 import TodoImage from '../../assets/images/to-dolist-bro.png';
-import { setAbortController } from '../utils/setAbortController';
-import { API_URL } from '../config/config.js';
-
-async function DeleteTask(taskId) {
-    const { signal, clearTimer } = setAbortController()
-    try {
-        const response = await fetch(`${API_URL}/patients/${PATIENT_ID}/tasks/${taskId}`, {  // Await is used since the response is not returned immediately
-            method: 'DELETE',
-            signal
-        });
-
-        clearTimer();
-
-        if (!response.ok) {   // response.ok is true when HTTP status indicates success 
-            throw new Error("Task could not be deleted");
-        }
-
-        Alert.alert('Task deleted', 'The task was successfully deleted.'); // message for the user
-        return true; // return true if log was successful 
-
-    } catch (e) {
-        console.error(e.message);  // display error in terminal
-        Alert.alert('Error deleting task', 'Please try again.');
-        return false;
-    }
-}
+import { useTasks } from '../hooks/useTasks.js';
+import { getTaskDayLabel } from '../utils/getTaskDayLabel.js';
 
 export default function TasksScreen() {
 
-    const [taskList, setTasks] = useState([]);
+    const { taskList, refreshTasks} = useTasks();
     const [modalVisible, setModalVisible] = useState(false); // Controls whether add Task component is visible. Defaults to false as it's opened by the add task button
 
-    async function refreshTasks() {
-        try {
-            const taskData = await loadTaskList(PATIENT_ID);
-            setTasks(taskData);
-            await syncNotifications(); // update notifications depending on tasks
-        } catch (error) {
-            constole.error(error); 
-        }
-    }
-
     async function handleDelete(taskId) {    // if an item is successfully deleted dispay the current task list
-        const response = await DeleteTask(taskId);
 
-        if (response) {
-            refreshTasks();
+        try {
+            await deleteTask(PATIENT_ID, taskId);
+            await refreshTasks();
+
+            Alert.alert('Task deleted', 'The task was successfully deleted.'); // message for the user
+        } catch (e) {
+            console.error(e);
+            Alert.alert('Error deleting task', 'Please try again.');
         }
     }
-
-    function getTaskDayLabel(frequency, day) {
-
-        // if task.frequency is daily display today
-        if (frequency === 'daily') {
-            return 'Today'
-        }
-
-        const today = new Date().getDay() + 1;  // with getDay() Sunday = 0, in the backend Sunday = 1 
-
-        console.log('today is', today);
-        console.log('Input day is', day);
-        if (frequency === 'weekly' && day === today) {
-            return 'Today'
-        }
-
-        const weekdays = [
-            "Sunday",
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-        ]
-
-        return weekdays[day - 1]
-    }
-
-    // load tasks when the screen is opened
-    useEffect(() => {
-        refreshTasks()
-    }, []);
 
     return (
         <View style={styles.pageContainer}>

@@ -35,7 +35,7 @@ test("updateMood sends fetch POST request correctly and returns true", async () 
     expect(result).toBe(true); // since updateMood returns true in case of success
 })
 
-test("updateMood returns false when in case of error and an error is logged", async () => {
+test("updateMood returns false in case of error and an error is logged", async () => {
     const consoleSpy = jest 
         .spyOn(console, "error")
         .mockImplementation(() => {}); // avoids the error to be displayed in jest output

@@ -13,7 +13,6 @@ Notifications.setNotificationHandler({   // needed to show notification
 });
 
 export async function syncNotifications() {       // needs to be called when a new task is added  or deleted in the database
-  console.log('sync notifications called');
   const tasks = await loadTaskList(PATIENT_ID);   // fetch tasks from database
   await Notifications.cancelAllScheduledNotificationsAsync();   // existing notifications are cancelled only when a new list of tasks are successfully fetched. 
   // This ensures the local notifications match the tasks in the database. 
@@ -22,7 +21,6 @@ export async function syncNotifications() {       // needs to be called when a n
   }
   //use for debugging 
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  console.log("Scheduled notifications:", scheduled);
 }
 
 export async function requestNotificationsPermissions() {

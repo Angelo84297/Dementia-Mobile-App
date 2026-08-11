@@ -1,4 +1,5 @@
 import { API_URL } from '../config/config';
+import { setAbortController } from '../utils/setAbortController';
 
 export async function loadTaskList(patientId) {
   const response = await fetch(`${API_URL}/task/${patientId}/`, {
@@ -10,4 +11,23 @@ export async function loadTaskList(patientId) {
   }
 
   return response.json();
+}
+
+export async function deleteTask(patientId, taskId) {
+    const { signal, clearTimer } = setAbortController();
+
+    try {
+        const response = await fetch(`${API_URL}/patients/${patientId}/tasks/${taskId}`, {
+            method: 'DELETE',
+            signal
+        });
+
+      if (!response.ok) { // response.ok is true when HTTP status indicates success 
+          throw new Error("Task could not be deleted");
+      }
+      
+    } finally {
+      clearTimer();
+    
+}
 }
