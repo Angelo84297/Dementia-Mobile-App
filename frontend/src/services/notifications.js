@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
-import { loadTaskList } from "./taskApi";
-import { convertDatetime } from "../utils/datetimeConversion";
+import { loadTaskList } from "../api/taskApi";
+import { convertDatetime } from "../utils/timeConversion";
+import { PATIENT_ID } from "../config/config";
 
 Notifications.setNotificationHandler({   // needed to show notification
   handleNotification: async () => ({
@@ -13,7 +14,7 @@ Notifications.setNotificationHandler({   // needed to show notification
 
 export async function syncNotifications() {       // needs to be called when a new task is added  or deleted in the database
   console.log('sync notifications called');
-  const tasks = await loadTaskList();   // fetch tasks from database
+  const tasks = await loadTaskList(PATIENT_ID);   // fetch tasks from database
   await Notifications.cancelAllScheduledNotificationsAsync();   // existing notifications are cancelled only when a new list of tasks are successfully fetched. 
   // This ensures the local notifications match the tasks in the database. 
   for (const task of tasks) {      // add each task in the task list to the local notifications

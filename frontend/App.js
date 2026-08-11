@@ -5,7 +5,7 @@ import Tabs from './src/navigation/Tabs.js';
 import { PATIENT_ID } from './src/screens/HomeScreen.js';
 import { MenuProvider } from 'react-native-popup-menu';
 import { syncNotifications, requestNotificationsPermissions, setNotificationsLocally } from './src/services/notifications.js';
-import { loadTaskList } from './src/services/taskApi.js';
+import { loadTaskList } from './src/api/taskApi.js';
 import * as Notifications from "expo-notifications";
 
 export default function App() {

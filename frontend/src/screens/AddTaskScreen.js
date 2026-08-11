@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Pressable, Alert } from 'react-native';
-import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE, PATIENT_ID, PRIMARY_COLOR } from './HomeScreen';
+import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE, PRIMARY_COLOR } from '../config/theme';
+import { PATIENT_ID } from '../config/config';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { setAbortController } from '../utils/setAbortController';
 import { Picker } from '@react-native-picker/picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { API_URL } from '../config/apiConfig';
+import { API_URL } from '../config/config';
 
 const FIELD_COLOR = '#F8F8FD'
 const FIELD_HEIGHT = 55

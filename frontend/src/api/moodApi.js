@@ -1,5 +1,5 @@
 import { setAbortController } from "../utils/setAbortController";
-import { API_URL } from "../config/apiConfig.js";
+import { API_URL } from "../config/config.js";
 
 /*
 Update mood accepts values from 1 (awful) to 5 (excellent).

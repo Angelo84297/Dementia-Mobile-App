@@ -2,15 +2,10 @@ import { StyleSheet, Text, View, Pressable, FlatList, Alert } from 'react-native
 import React from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMood } from '../hooks/useMood';
-
+import { datetimeToTime } from '../utils/timeConversion';
+import { PRIMARY_COLOR, BODY_TEXT_SIZE, TITLE_TEXT_SIZE } from '../config/theme';
 
 const MOOD_ICON_SIZE = 67
-export const BODY_TEXT_SIZE = 18
-export const TITLE_TEXT_SIZE = 37
-export const PRIMARY_COLOR = "#6200ee"
-export const PATIENT_ID = 1 // patient id for the MVP. Authentication not implemented in this version. 
-export const SMALL_TEXT_SIZE = 18  // used for smaller elements (e.g. buttons). Recommended max 18
-export const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;  // local timezone
 
 const moodTextMap = {
   1: "Awful",
@@ -85,11 +80,7 @@ export default function HomeScreen() {
             <MaterialCommunityIcons name={moodIconMap[item.mood]} size={MOOD_ICON_SIZE} color={PRIMARY_COLOR} />
             <Text style={{ fontSize: BODY_TEXT_SIZE }}>{moodTextMap[item.mood]}</Text>
             <Text style={{ fontSize: BODY_TEXT_SIZE }}>
-              {new Date(item.created_at).toLocaleTimeString([], {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true,
-              })}
+              {datetimeToTime(item.created_at)}
             </Text>
           </View>
         )}

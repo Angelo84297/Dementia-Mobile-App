@@ -1,15 +1,16 @@
 import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert, Image } from 'react-native';
-import { BODY_TEXT_SIZE, TITLE_TEXT_SIZE, PATIENT_ID, SMALL_TEXT_SIZE, PRIMARY_COLOR } from './HomeScreen';
+import { BODY_TEXT_SIZE, TITLE_TEXT_SIZE, SMALL_TEXT_SIZE, PRIMARY_COLOR } from '../config/theme.js';
+import { PATIENT_ID } from '../config/config.js';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState, useEffect } from 'react';
 import { AddTaskModal } from './AddTaskScreen';
 import { Menu, MenuOptions, MenuOption, MenuTrigger } from 'react-native-popup-menu';
 import { syncNotifications } from '../services/notifications';
-import { loadTaskList } from '../services/taskApi';
-import { datetimeToTime } from '../utils/datetimeConversion';
+import { loadTaskList } from '../api/taskApi.js';
+import { datetimeToTime } from '../utils/timeConversion.js';
 import TodoImage from '../../assets/images/to-dolist-bro.png';
 import { setAbortController } from '../utils/setAbortController';
-import { API_URL } from '../config/apiConfig.js';
+import { API_URL } from '../config/config.js';
 
 async function DeleteTask(taskId) {
     const { signal, clearTimer } = setAbortController()
@@ -40,11 +41,14 @@ export default function TasksScreen() {
     const [taskList, setTasks] = useState([]);
     const [modalVisible, setModalVisible] = useState(false); // Controls whether add Task component is visible. Defaults to false as it's opened by the add task button
 
-    function refreshTasks() {
-        loadTaskList()
-            .then(data => setTasks(data))
-            .catch(error => console.error(error))
-        syncNotifications();   // update notifications 
+    async function refreshTasks() {
+        try {
+            const taskData = await loadTaskList(PATIENT_ID);
+            setTasks(taskData);
+            await syncNotifications(); // update notifications depending on tasks
+        } catch (error) {
+            constole.error(error); 
+        }
     }
 
     async function handleDelete(taskId) {    // if an item is successfully deleted dispay the current task list

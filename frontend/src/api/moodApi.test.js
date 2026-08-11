@@ -1,9 +1,16 @@
 import { updateMood, getTodayMood } from "../api/moodApi";
 import { waitFor } from "@testing-library/react-native";
-import { API_URL } from "../config/apiConfig";
 
 // mocks network request 
 global.fetch = jest.fn();
+
+// to fix undefined API_URL 
+jest.mock("../config/config", () => ({
+    API_URL: "",
+    PATIENT_ID: 1,
+  timezone: "Europe/London"
+
+}));
 
 // mocks server response
 test("updateMood sends fetch POST request correctly and returns true", async () => {
@@ -15,7 +22,7 @@ test("updateMood sends fetch POST request correctly and returns true", async () 
     const result = await updateMood(1, 4);
 
     expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining(`${API_URL}/mood/`), // tesing if correct endpoint is called
+        expect.stringContaining(`/mood/`), // testing if correct endpoint is called
         expect.objectContaining({
             method: "POST",
             body: JSON.stringify({
@@ -56,10 +63,10 @@ test("getTodayMood calls fetch with correct patient ID  and timezone", async () 
         json: jest.fn().mockResolvedValue([])
     })
 
-    await getTodayMood(1, "Europe/London");
+    await getTodayMood(1, "Europe/London");  
 
     expect(fetch).toHaveBeenCalledWith(
-        `${API_URL}/mood/1/today?timezone_name=Europe%2FLondon`,
+        `/mood/1/today?timezone_name=Europe%2FLondon`,
         { method: "GET" }
     );
 });

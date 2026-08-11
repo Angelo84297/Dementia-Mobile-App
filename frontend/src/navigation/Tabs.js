@@ -1,12 +1,14 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import {PRIMARY_COLOR} from '../screens/HomeScreen';
 
 // Import screens to be opened by bottom nav bar
 import HomeScreen from '../screens/HomeScreen';
 import HealthScreen from '../screens/HealthScreen';
 import TasksScreen from '../screens/TasksScreen';
+
+import { PRIMARY_COLOR } from '../config/theme';
+
 
 // Create bottom navigation bar
 const Tab = createBottomTabNavigator();
