@@ -31,3 +31,28 @@ export async function deleteTask(patientId, taskId) {
     
 }
 }
+export async function LogTask(patientId, description, notificationTime, frequency, weekday) {
+    const { signal, clearTimer } = setAbortController();
+
+    const response = await fetch(`${API_URL}/task/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            patient_id: patientId,
+            description: description,
+            notification_time: notificationTime,
+            frequency: frequency,
+            weekday: weekday
+        }),
+        signal
+    });
+
+    clearTimer();
+    if (!response.ok) { // response.ok is true when HTTP status indicates success 
+        throw new Error(`Task log failed, ${response.status}`);
+    }
+
+    return response.json(); // new row inserted in database
+}

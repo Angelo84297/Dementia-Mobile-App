@@ -5,6 +5,7 @@ import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE } from '../config/theme.js';
 import { minutes_to_hours } from '../utils/timeConversion.js';
 import { useHealthRecord } from '../hooks/useHealthRecord.js';  
 import { useWellbeingAdvice } from '../hooks/useWellbeingAdvice.js';
+import { datetimeToTime } from '../utils/timeConversion.js';
 
 export default function HealthScreen() {
 
@@ -68,18 +69,14 @@ return (
                 </View>
 
             </View>
-            <View>
+            <View>  
                 <View style={[styles.reccomendationCard, { backgroundColor: '#88e1e9' }]}>
                     <View style={styles.cardRow}>
                         <Ionicons name='sparkles' size={25} />
                         {/* flexShrink allows the time to fit in the row */}
                         <Text style={[styles.reccomendationTitle, { flexShrink: 1 }]}>AI Wellbeing reccomandation</Text>
-                        {!isLoading && wellbeingAdvice && <Text style={styles.reccomendationTime}>
-                            {new Date(wellbeingAdvice?.created_at).toLocaleTimeString([], {
-                                hour: 'numeric',
-                                minute: '2-digit',
-                                hour12: true,
-                            })}</Text>}
+                        {!isLoading && wellbeingAdvice && <Text style={styles.reccomendationTime}>    
+                            {datetimeToTime(wellbeingAdvice?.created_at)}</Text>}
                     </View>
                     {isLoading ? (
                         <View style={styles.loadingContainer}>

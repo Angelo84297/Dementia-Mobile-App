@@ -20,12 +20,13 @@ export async function syncNotifications() {       // needs to be called when a n
     await setNotificationsLocally(task);
   }
   //use for debugging 
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  //const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  //console.log("Scheduled notifications", scheduled); 
 }
 
 export async function requestNotificationsPermissions() {
 
-  const permissions = await Notifications.requestPermissionsAsync();   // permission is needed from the user to set local notifcations on the smartphone
+  const permissions = await Notifications.requestPermissionsAsync();   // permission to set local notifcations
   if (permissions.status != "granted") {
     throw new Error("Notifications denied. Please try again");
   }
@@ -33,11 +34,11 @@ export async function requestNotificationsPermissions() {
 
 export async function setNotificationsLocally(task) {
 
-  const date = new Date(task.notification_time);  // datetime format allows to automatically convert to local time
+  const date = new Date(task.notification_time);  // datetime allows local time conversion
   const hour = date.getHours();
   const minute = date.getMinutes();
 
-  let trigger;  // let is used as it allows a value to be assigned later
+  let trigger;  // allows a value to be assigned later
 
   if (task.frequency === "daily") {
     trigger = {
@@ -50,7 +51,7 @@ export async function setNotificationsLocally(task) {
   if (task.frequency === "weekly") {
     trigger = {
       type: 'weekly',
-      hour: Number(hour),   // conver str in int
+      hour: Number(hour),   // convert from string
       minute: Number(minute),
       weekday: task.weekday
     }

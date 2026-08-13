@@ -47,10 +47,19 @@ def session():
     SQLModel.metadata.drop_all(test_engine)
 
 
-def test_post_mood(client): 
+def test_post_mood(client, session): 
     """
     Test the post mood endpoint. 
     """
+    
+    # to post mood a patient is needed in the database
+    patient= models.Patient(
+        patient_id=2,
+        user_id=1
+    )
+    session.add(patient)
+    session.commit()
+
     response = client.post(
         "/mood/",
         json={

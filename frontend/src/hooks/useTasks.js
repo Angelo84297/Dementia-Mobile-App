@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { loadTaskList } from "../api/taskApi";
 import { PATIENT_ID } from "../config/config";
 import { syncNotifications } from "../services/notifications";
+import { deleteTask } from "../api/taskApi";
 
 export function useTasks() {
 
@@ -17,9 +18,17 @@ export function useTasks() {
         }
     }
 
+    async function removeTask(taskId) {    // if an item is successfully deleted dispay the current task list
+        await deleteTask(PATIENT_ID, taskId);
+        await refreshTasks();
+    }
+
     useEffect(() => {
         refreshTasks();
     }, []);
 
-    return { taskList, refreshTasks };
+    return { taskList, refreshTasks, removeTask }
+
 }
+
+

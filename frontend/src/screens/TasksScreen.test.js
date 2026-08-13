@@ -1,8 +1,9 @@
 import { useTasks } from "../hooks/useTasks";
-import { screen, render } from "@testing-library/react-native";
+import { screen, render, within, fireEvent, waitFor} from "@testing-library/react-native";
 import { MenuProvider } from "react-native-popup-menu";
 import { Ionicons } from "@expo/vector-icons/Ionicons";
 import TasksScreen from "./TasksScreen";
+import {Alert} from 'react-native';
 
 jest.mock("../hooks/useTasks", () => ({
     useTasks: jest.fn()
@@ -10,6 +11,8 @@ jest.mock("../hooks/useTasks", () => ({
 
 // to avoid errors related to loading icons
 jest.mock("@expo/vector-icons/Ionicons", () => () => null);
+
+jest.spyOn(Alert, "alert"); 
 
 
 beforeEach(() => {
@@ -30,8 +33,10 @@ beforeEach(() => {
                 weekday: null
             }
         ],
-        refreshTasks: jest.fn()
+        refreshTasks: jest.fn(),
+        removeTask: jest.fn(),
     });
+    jest.clearAllMocks();
 });
 
 
@@ -51,30 +56,38 @@ test("Renders header and Add task button ", () => {
     expect(screen.getByText("Add task")).toBeTruthy();
 });
 
-("Renders tasks and the time they are due", async () => {
+test("Renders tasks, the time they are due and option button for each task card", async () => {
     renderTasksScreen();
-    const taskCard = screen.getByText("Make lunch")
-    const taskCard2 = screen.getByText("Take Magnesium")
-    expect(within(taskCard).getByText("12:30 am")).toBeTruthy();  // for timezone utc + 1
-    expect(within(taskCard).getByText("16:30 am")).not.toBeTruthy();
-    expect(within(taskCard2).getByText("16:30 am")).toBeTruthy();
+    const taskCard = screen.getByTestId("task-card1")
+    const taskCard2 = screen.getByTestId("task-card2")
+    expect(within(taskCard).getByText("Make lunch")).toBeTruthy()
+    expect(within(taskCard).getByText("12:30")).toBeTruthy();  // for timezone utc + 1
+    expect(screen.getByTestId("options-button-1")).toBeTruthy()
+    expect(within(taskCard2).getByText("Take magnesium")).toBeTruthy()
+    expect(within(taskCard2).getByText("16:30")).toBeTruthy();  // for timezone utc + 1
+    expect(screen.getByTestId("options-button-2")).toBeTruthy()
 });
 
-("Displays suggestion to add tasks when taskList is empty", async () => {
-    renderTasksScreen();
+test("Displays suggestion to add tasks when taskList is empty", async () => {
     useTasks.mockReturnValue({
         taskList: [],
-        refreshTasks: jest.fn()
+        refreshTasks: jest.fn(),
+        removeTask: jest.fn()
     });
 
-    expect(screen.getByText("Tap on 'Add task' to add a new task to your To-do list!"));
+    renderTasksScreen();
+
+    expect(screen.getByText('Tap on "Add task" to add a new task to your To-do list!'));
 
 })
 
-//test("Calls refresh tasks when tasks are removed", async () => {
-//    renderTasksScreen();
+test("display the Add Task modal when the 'Add task' button is tapped", () => { 
+    renderTasksScreen();
 
-//    await 
+    fireEvent.press(screen.getByText("Add task"))
 
+    expect(screen.getByText("Add task description")).toBeTruthy();
+    expect(screen.getByPlaceholderText("Briefly type the task description")).toBeTruthy();
 
-//})
+})
+        

@@ -1,4 +1,4 @@
-import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable, TouchableOpacity, Alert, Image  } from 'react-native';
 import { BODY_TEXT_SIZE, TITLE_TEXT_SIZE, SMALL_TEXT_SIZE, PRIMARY_COLOR } from '../config/theme.js';
 import { PATIENT_ID } from '../config/config.js';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -13,99 +13,103 @@ import { getTaskDayLabel } from '../utils/getTaskDayLabel.js';
 
 export default function TasksScreen() {
 
-    const { taskList, refreshTasks} = useTasks();
+    const { taskList, refreshTasks, removeTask } = useTasks();
     const [modalVisible, setModalVisible] = useState(false); // Controls whether add Task component is visible. Defaults to false as it's opened by the add task button
 
-    async function handleDelete(taskId) {    // if an item is successfully deleted dispay the current task list
-
+    async function handleDelete(taskId) { 
         try {
-            await deleteTask(PATIENT_ID, taskId);
-            await refreshTasks();
-
-            Alert.alert('Task deleted', 'The task was successfully deleted.'); // message for the user
-        } catch (e) {
+            await removeTask(taskId);  // await to ensure the task is deleted before the alert
+            Alert.alert('Task deleted', 'The task was successfully deleted.');
+        }   catch (e) {
             console.error(e);
             Alert.alert('Error deleting task', 'Please try again.');
         }
     }
 
     return (
-        <View style={styles.pageContainer}>
+            <View style={styles.pageContainer}>
 
-            {/*Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}> To-do list </Text>
-            </View>
-            {/*Add task button. Button wraps text and icon */}
-            <Pressable style={styles.addTaskButton} onPress={() => setModalVisible(true)}>   {/*Display "add task" component */}
-                <Ionicons name='add-circle' size={SMALL_TEXT_SIZE} color={PRIMARY_COLOR} />
-                <Text style={styles.buttonText}>Add task </Text>
-            </Pressable>
-            {/*Message for when task list is empty*/}
-            {taskList.length === 0 && (
-                <View style={styles.instructionContainer}>
-                    <Text style={styles.instructionText}>Tap on "Add task" to add a new task to your To-do list!</Text>
-                    <Image source={TodoImage} style={{ width: 420, height: 300 }} />
+                {/*Header */}
+                <View style={styles.header}>
+                    <Text style={styles.headerTitle}> To-do list </Text>
                 </View>
-            )}
-            {/* List of tasks */}
-            <FlatList     // displays a scrollable list. Only renders visible items
-                data={taskList}
-                renderItem={({ item }) =>
-                    /* Task card */
-                    <View style={styles.taskContainer}>
-                        {/*Left side of task card */}
-                        <View style={styles.taskCardLeftSide}>
-                            <Ionicons
-                                name="notifications"
-                                size={30}
-                                color='#B2B0F6'
-                            />
-                            <View style={styles.textContainer}>
-                                <Text style={styles.taskDescription}>{item.description}</Text>
-                                <View style={styles.timeRow}>
-                                    {/* display today / week day*/}
-                                    <Ionicons
-                                        name="calendar-outline"
-                                        size={SMALL_TEXT_SIZE}
-                                        color="#8F92A1"
-                                    />
-                                    <Text style={styles.timeText}>{getTaskDayLabel(item.frequency, item.weekday)}</Text>
-                                    <Ionicons name='time-outline' style={styles.timeIcon} size={SMALL_TEXT_SIZE} color='#8F92A1' />
-                                    <Text style={styles.timeText}>{datetimeToTime(item.notification_time)}</Text>
-
-                                </View>
-                            </View>
-                            {/* Right side of task card */}
-                        </View>
-                        <View style={styles.taskCardRightSide}>
-                            <Menu>
-                                <MenuTrigger>
-                                    <Ionicons
-                                        name="ellipsis-vertical"
-                                        size={24}
-                                        color="#1A1446"
-                                    />
-                                </MenuTrigger>
-
-                                <MenuOptions>
-                                    <MenuOption onSelect={() => handleDelete(item.task_id)}>   {/* Arrow function is used so it's not called immediately when the page renders */}
-                                        <Text>Delete task</Text>
-                                    </MenuOption>
-                                </MenuOptions>
-                            </Menu>
-                        </View>
+                {/*Add task button. Button wraps text and icon */}
+                <Pressable style={styles.addTaskButton} onPress={() => setModalVisible(true)}>   {/*Display "add task" component */}
+                    <Ionicons name='add-circle' size={SMALL_TEXT_SIZE} color={PRIMARY_COLOR} />
+                    <Text style={styles.buttonText}>Add task </Text>
+                </Pressable>
+                {/*Message for when task list is empty*/}
+                {taskList.length === 0 && (
+                    <View style={styles.instructionContainer}>
+                        <Text style={styles.instructionText}>Tap on "Add task" to add a new task to your To-do list!</Text>
+                        <Image source={TodoImage} style={{ width: 420, height: 300 }} />
                     </View>
-                }
-                keyExtractor={(item) => item.task_id.toString()}
-            />
+                )}
+                {/* List of tasks */}
+                <FlatList     // displays a scrollable list. Only renders visible items
+                    data={taskList}
+                    renderItem={({ item }) =>
+                        /* Task card */
+                        <View 
+                        testID={`task-card${item.task_id}`}
+                        style={styles.taskContainer}>
+                            {/*Left side of task card */}
+                            <View style={styles.taskCardLeftSide}>
+                                <Ionicons
+                                    name="notifications"
+                                    size={30}
+                                    color='#B2B0F6'
+                                />
+                                <View style={styles.textContainer}>
+                                    <Text style={styles.taskDescription}>{item.description}</Text>
+                                    <View style={styles.timeRow}>
+                                        {/* display today / week day*/}
+                                        <Ionicons
+                                            name="calendar-outline"
+                                            size={SMALL_TEXT_SIZE}
+                                            color="#8F92A1"
+                                        />
+                                        <Text style={styles.timeText}>{getTaskDayLabel(item.frequency, item.weekday)}</Text>
+                                        <Ionicons name='time-outline' style={styles.timeIcon} size={SMALL_TEXT_SIZE} color='#8F92A1' />
+                                        <Text style={styles.timeText}>{datetimeToTime(item.notification_time)}</Text>
 
-            <AddTaskModal    // remains hidden until add Task is tapped
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}   // when the cancel button is pressed it's hidden again
-                onTaskAdded={() => refreshTasks()}   // the function is passed to avoid circular dependency. 
-            />
-        </View>
+                                    </View>
+                                </View>
+                                {/* Right side of task card */}
+                            </View>
+                            <View style={styles.taskCardRightSide}>
+                                <Menu>
+                                    <MenuTrigger
+                                    testID={`options-button-${item.task_id}`}>
+                                        <Ionicons
+                                            name="ellipsis-vertical"
+                                            size={24}
+                                            color="#1A1446"
+                                        />
+                                    </MenuTrigger>
+
+                                    <MenuOptions>
+                                        <MenuOption 
+                                        testID={`delete-task-${item.task_id}`}
+                                        onSelect={() => handleDelete(item.task_id)}>   {/* Arrow function is used so it's not called immediately when the page renders */}
+                                            <Text>Delete task</Text>
+                                        </MenuOption>
+                                    </MenuOptions>
+                                </Menu>
+                            </View>
+                        </View>
+                    }
+                    keyExtractor={(item) => item.task_id.toString()}
+                />
+
+                <AddTaskModal    // remains hidden until add Task is tapped
+                    testID='add-task-modal'
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}   // when the cancel button is pressed it's hidden again
+                    onTaskAdded={() => refreshTasks()}   // passed to avoid circular dependency. 
+                />
+            </View>
+        
     );
 }
 

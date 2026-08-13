@@ -90,7 +90,7 @@ class MoodRead(SQLModel):
     created_at: datetime
 
 class DailyHealthRecordRead(SQLModel): 
-    total_step_count : int | None  # Null is returned when it's stored as 0, as it's more accurate
+    total_step_count : int | None  # Null is returned when stored as 0, as it's more accurate
     average_heart_rate : int | None 
     max_sleep_minutes : int | None 
 

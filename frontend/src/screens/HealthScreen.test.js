@@ -72,7 +72,7 @@ test("Displays Wellbeing Advice and the time it was generated", () => {
     render(<HealthScreen />);
 
     expect(screen.getByText("Hi, I'm your wellbeing companion"));
-    expect(screen.getByText("11:00 am"))  // with utc + 1 local time
+    expect(screen.getByText("11:00"))  // with utc + 1 local time
 }
 )
 

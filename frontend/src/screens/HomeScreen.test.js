@@ -78,7 +78,7 @@ test("Moods in the moodList are displayed correctly", () => {
   const moodCard = screen.getByTestId("todayMood-1")
   const moodCard2 = screen.getByTestId("todayMood-2")
   expect(within(moodCard).getByText("Good")).toBeTruthy();
-  expect(within(moodCard).getByText("11:20 am")).toBeTruthy();  // assumes the tester's timezone is utc + 1
+  expect(within(moodCard).getByText("11:20")).toBeTruthy();  // assumes the tester's timezone is utc + 1
   expect(within(moodCard2).getByText("Awful"));
 })
 
@@ -101,7 +101,7 @@ test("displays failure alert when mood log is not successful", async () => {
   mockRecordMood.mockResolvedValue(false);
 
   render(<HomeScreen />)
-
+  
   fireEvent.press(screen.getByText("Good"));
 
   await waitFor(() => {
