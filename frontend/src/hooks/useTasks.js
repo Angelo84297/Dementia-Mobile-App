@@ -1,26 +1,40 @@
 import { useState, useEffect } from "react";
-import { loadTaskList } from "../api/taskApi";
+import { loadTaskList, deleteTask } from "../api/taskApi";
 import { PATIENT_ID } from "../config/config";
 import { syncNotifications } from "../services/notifications";
-import { deleteTask } from "../api/taskApi";
 
+/**
+ * Loads and manages the state of the task list and keeps local notifications 
+ * synchronised with it. 
+ * 
+ * @returns {Object} An object containing the current task list, 
+ * a function to refresh the tasks, a function to remove a task. 
+ */
 export function useTasks() {
 
     const [taskList, setTaskList] = useState([]);
 
+    /**
+     * Loads the task list, updates its state and updates the local 
+     * notifications to match the current tasks. 
+     */
     async function refreshTasks() {
         try {
             const taskData = await loadTaskList(PATIENT_ID);
             setTaskList(taskData);
-            await syncNotifications(); // update notifications depending on tasks
+            await syncNotifications();
         } catch (error) {
             console.error(error);
         }
     }
-
-    async function removeTask(taskId) {    // if an item is successfully deleted dispay the current task list
-        await deleteTask(PATIENT_ID, taskId);
-        await refreshTasks();
+    /**
+     * Removes a task and refreshes the task list. 
+     * 
+     * @param {number} taskId - ID of the task to remove.
+     */
+    async function removeTask(taskId) {    
+        await deleteTask(PATIENT_ID, taskId);  // error not catched so it can reach the UI
+        await refreshTasks(); 
     }
 
     useEffect(() => {

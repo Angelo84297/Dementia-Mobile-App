@@ -12,38 +12,51 @@ Notifications.setNotificationHandler({   // needed to show notification
   }),
 });
 
-export async function syncNotifications() {       // needs to be called when a new task is added  or deleted in the database
-  const tasks = await loadTaskList(PATIENT_ID);   // fetch tasks from database
-  await Notifications.cancelAllScheduledNotificationsAsync();   // existing notifications are cancelled only when a new list of tasks are successfully fetched. 
-  // This ensures the local notifications match the tasks in the database. 
-  for (const task of tasks) {      // add each task in the task list to the local notifications
-    await setNotificationsLocally(task);
+/**
+ * Loads the task list and sets a local notification for each task. 
+ */
+export async function syncNotifications() {       
+  try {
+    const tasks = await loadTaskList(PATIENT_ID);   
+    await Notifications.cancelAllScheduledNotificationsAsync();   // after the list is fetched to avoid deleting notifications if tasks cannot be fetched. 
+    for (const task of tasks) {     
+      await setNotificationsLocally(task);
+    }
+  } catch (e) {
+    throw new Error(`Notification synchronisation failed: ${e.message}`); 
   }
-  //use for debugging 
-  //const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  //console.log("Scheduled notifications", scheduled); 
 }
 
+/**
+ * Requests permissions to set local notifications. 
+ */
 export async function requestNotificationsPermissions() {
 
-  const permissions = await Notifications.requestPermissionsAsync();   // permission to set local notifcations
+  const permissions = await Notifications.requestPermissionsAsync();   
   if (permissions.status != "granted") {
     throw new Error("Notifications denied. Please try again");
   }
 }
 
+/**
+ * Sets a local notification for a task. The notification can 
+ * be triggered daily or weekly. 
+ * 
+ * @param {Object} task The task object providing notification time, 
+ * frequency (daily/weekly), description, weekday (for weekly tasks), 
+ * task id 
+ */
 export async function setNotificationsLocally(task) {
-
   const date = new Date(task.notification_time);  // datetime allows local time conversion
   const hour = date.getHours();
   const minute = date.getMinutes();
 
-  let trigger;  // allows a value to be assigned later
+  let trigger; 
 
   if (task.frequency === "daily") {
     trigger = {
       type: 'daily',
-      hour: Number(hour),   // conver str in int
+      hour: Number(hour),   // convert from string
       minute: Number(minute)
     }
   }
@@ -51,19 +64,18 @@ export async function setNotificationsLocally(task) {
   if (task.frequency === "weekly") {
     trigger = {
       type: 'weekly',
-      hour: Number(hour),   // convert from string
+      hour: Number(hour),   
       minute: Number(minute),
       weekday: task.weekday
     }
   }
 
-
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: "Task reminder",
-      body: task.description,    // message for the user
+      body: task.description,   // reminder for the user
       data: {
-        taskId: task.task_id      // add task id to notification information. Can be useful when If in the future the task can be marked as completed from the notification
+        taskId: task.task_id      // can be useful for future functionalities (e.g. deleting only one notificaiton at a time). 
       }
     },
     trigger,

@@ -2,34 +2,39 @@ import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import Tabs from './src/navigation/Tabs.js';
-import { PATIENT_ID } from './src/screens/HomeScreen.js';
 import { MenuProvider } from 'react-native-popup-menu';
-import { syncNotifications, requestNotificationsPermissions, setNotificationsLocally } from './src/services/notifications.js';
-import { loadTaskList } from './src/api/taskApi.js';
+import { syncNotifications, requestNotificationsPermissions } from './src/services/notifications.js';
 import * as Notifications from "expo-notifications";
 
+/**
+ * The application's root component.  
+ * 
+ * On start-up sets up notification permissions and synchronises local notifications
+ * with database. 
+ */
 export default function App() {
 
+  /**
+   * Requests notification permissions when the application is started 
+   * and synchronises local notifications with tasks in task list. 
+   */
   async function setup() {
     try {
       await requestNotificationsPermissions();
       await syncNotifications();
-      const notifications = await Notifications.getAllScheduledNotificationsAsync();
 
     } catch (error) {
       console.log(error);
     }
   }
-  // run after the component is rendered. useEffect is used for side effects, in this case fetching data from API. 
+
   useEffect(() => {
-    setup();
-  }, []);  // [] makes use effect run once when the component is mounted as it tells React there are no values to keep track of for changes. 
+    setup();  
+  }, []);  // setup only needs to run when the component is mounted. 
 
   return (
-    <MenuProvider>         {/* App is wrapped to use the Menu component */}
-      // Manages app navigation state
+    <MenuProvider>   {/* App is wrapped to use the Menu component in AddTasksScreen*/}
       <NavigationContainer>
-        {/* App's navigation structure*/}
         <Tabs />
       </NavigationContainer>
     </MenuProvider>

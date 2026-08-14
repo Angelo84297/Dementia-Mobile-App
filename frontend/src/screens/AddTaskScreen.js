@@ -1,6 +1,6 @@
 import React from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Pressable, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE, PRIMARY_COLOR } from '../config/theme';
+import { Modal, View, Text, TextInput, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { TITLE_TEXT_SIZE, BODY_TEXT_SIZE } from '../config/theme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -8,8 +8,18 @@ import { useAddTasks } from '../hooks/useAddTasks';
 
 const FIELD_COLOR = '#F8F8FD'
 const FIELD_HEIGHT = 55
-const FIELD_MARGIN_TOP = 1
+const FIELD_MARGIN_TOP = 1  
 
+/**
+ * Displays the Add Tasks modal allowing the user to input 
+ * description, frequency, weekday, and time for the task they wish to add 
+ * to their to-do list. 
+ * 
+ * @param {boolean} visible - indicates whether the modal is visible.
+ * @param {Function} onRequestClose - callback used to set the modal's visibility. 
+ * @param {Function} onTaskAdded - callback called after a task is added to the task list. 
+ * @returns {React.ReactElement} the rendered modal. 
+ */
 export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
 
     const {
@@ -23,49 +33,41 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
         weekday,
         setWeekday,
         handleAdd, handleCancel
-    } = useAddTasks(onTaskAdded, onRequestClose); // custom hook 
+    } = useAddTasks(onTaskAdded, onRequestClose); 
 
     return (
         <Modal visible={visible}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss} // to close keyboard tapping on the screen
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} // closes keyboard when user taps on the screen
                 accessible={false}>
                 <View style={styles.dialogCard}>
-                    {/* X Button */}
                     <TouchableOpacity style={styles.xButton} onPress={handleCancel}>
                         <Text style={styles.xText}>x</Text>
                     </TouchableOpacity>
                     <Text style={styles.title}>Add Task</Text>
-
                     <Text style={styles.secondaryTitle}>Add task description</Text>
-
                     <TextInput style={styles.inputText}
                         placeholder="Briefly type the task description"
                         value={description}
                         maxLength={25}  // ensures description fits in the card
-                        onChangeText={setDescription}    // when the user types, the input is updated by setDescription
+                        onChangeText={setDescription}    // allows the user to see what they type
                     />
-
                     <Text style={styles.secondaryTitle}>Frequency</Text>
-
-                    {/* Select frequency */}
                     <View style={styles.pickerContainer}>
                         <Picker
-                            selectedValue={frequency}  // currently selected 
+                            selectedValue={frequency}  
                             onValueChange={(value) => setFrequency(value)}
                         >
                             <Picker.Item label={'Daily'} value={'daily'} />
                             <Picker.Item label={'Weekly'} value={'weekly'} />
                         </Picker>
                     </View>
-                    {/* Select day */}
                     {frequency === 'weekly' && (
                         <>
                             <Text style={styles.secondaryTitle}>Day</Text>
                             <View style={styles.pickerContainer}>
                                 <Picker
-                                    selectedValue={weekday}  // currently selected 
-                                    onValueChange={(value) => setWeekday(value)}
-                                >
+                                    selectedValue={weekday}  
+                                    onValueChange={(value) => setWeekday(value)}>
                                     <Picker.Item label={'Select day'} value={null} />
                                     <Picker.Item label={'Sunday'} value={1} />
                                     <Picker.Item label={'Monday'} value={2} />
@@ -78,43 +80,34 @@ export const AddTaskModal = ({ visible, onRequestClose, onTaskAdded }) => {
                             </View>
                         </>
                     )}
-
                     <Text style={styles.secondaryTitle}>Time</Text>
-                    {/*Select Time */}
                     <TouchableOpacity
                         style={styles.timePickerContainer}
-                        onPress={() => setOpenPicker(true)}>  {/*setOpenPicker expects a boolean */}
+                        onPress={() => setOpenPicker(true)}> 
                         <Text style={styles.timeText}>
-                            {time
-                                ? time.toLocaleTimeString([], {
+                            {time? 
+                            time.toLocaleTimeString([], {
                                     hour: "2-digit",
                                     minute: "2-digit"
-                                })
-                                : "Select time"}   {/* Displayed by default when time is null */}
-
+                            })
+                            : "Select time"}   {/*Displayed by default*/}
                         </Text>
                         <Ionicons
-                            style={{ marginRight: 8 }}  // matches Picker arrow's position
+                            style={{marginRight: 8}}  // matches Picker arrow's position
                             name="caret-down-outline"
                             size={13}
                             color='#696969'
                         />
                     </TouchableOpacity>
-
-
-                    {/* display dateTimePicker when true */}
                     {openPicker &&
                         <DateTimePicker
-                            value={time ?? new Date()}  // type Date() is needed despite the user selects time
-                            mode="time"   // display time
+                            value={time ?? new Date()}  // type Date() to have timezone information
+                            mode="time"  
                             onChange={handleTimeChange}
                         />
                     }
-
-
-                    {/*Add task button */}
                     <TouchableOpacity style={styles.addTaskButton} onPress={handleAdd}>
-                        <Text style={styles.addTaskButtonText}> Add task</Text>
+                        <Text style={styles.addTaskButtonText}>Add task</Text>
                     </TouchableOpacity>
                 </View>
             </TouchableWithoutFeedback>

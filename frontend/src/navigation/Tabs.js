@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-// Import screens to be opened by bottom nav bar
+// Screens to be opened by bottom navigation bar
 import HomeScreen from '../screens/HomeScreen';
 import HealthScreen from '../screens/HealthScreen';
 import TasksScreen from '../screens/TasksScreen';
@@ -13,6 +13,12 @@ import { PRIMARY_COLOR } from '../config/theme';
 // Create bottom navigation bar
 const Tab = createBottomTabNavigator();
 
+/**
+ * Renders the bottom navigation bar and opens the applications's main 
+ * screens. 
+ * 
+ * @returns {React.ReactElement} the rendered bottom navigation bar. 
+ */
 export default function Tabs() {
   return (
     <Tab.Navigator screenOptions={{
@@ -33,7 +39,7 @@ export default function Tabs() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="home"
-              color={color}   // use color given by navigator
+              color={color}   // color given by navigator
               size={30}
             />
           )

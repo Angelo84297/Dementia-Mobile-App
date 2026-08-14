@@ -7,6 +7,7 @@ import { PRIMARY_COLOR, BODY_TEXT_SIZE, TITLE_TEXT_SIZE } from '../config/theme'
 
 const MOOD_ICON_SIZE = 67
 
+// maps mood values to corresponding labels
 const moodTextMap = {
   1: "Awful",
   2: "Bad",
@@ -15,6 +16,7 @@ const moodTextMap = {
   5: "Super"
 }
 
+// maps mood values to corresponding icons
 const moodIconMap = {
   1: "emoticon-cry-outline",
   2: "emoticon-sad-outline",
@@ -22,6 +24,14 @@ const moodIconMap = {
   4: "emoticon-happy-outline",
   5: "emoticon-excited-outline"
 }
+
+/**
+ * Renders a mood button component with a mood icon and label. 
+ * 
+ * @param {string} icon - the Material Community icon to display.
+ * @param {string} label - the label under the button to display.
+ * @param {Function} onPress - the callback function to trigger.
+ */
 
 function MoodButton({ icon, label, onPress }) {
   return (
@@ -39,12 +49,26 @@ function MoodButton({ icon, label, onPress }) {
   );
 }
 
-
+/**
+ * Manages the home screen UI. 
+ * 
+ * It displays: 
+ * - Mood buttons that can be used by the user to log their mood
+ *  from 1 (Awful) to 5 (Super).
+ * - A list of the user's daily mood. 
+ * 
+ * @returns {React.ReactElement} the rendered home screen. 
+ */
 export default function HomeScreen() {
 
   // using custom hook to separate logic from UI
   const { moodList, recordMood } = useMood()
 
+  /**
+   * Records the selected mood and displaying the result to the user. 
+   * 
+   * @param {number} moodValue - the mood value between 1 (Awful) and 5 (Super). 
+   */
   async function handlePress(moodValue) {
 
     const success = await recordMood(moodValue);
