@@ -1,24 +1,24 @@
 from sqlmodel import SQLModel, Session, create_engine
-import models # needed so create_all() knows which tables to create
+import models # used by create_all() to create classes
 import os
 from dotenv import load_dotenv
 
 load_dotenv()  
+database_url = os.getenv("database_url")   
 
-database_url = os.getenv("database_url")   # retrieve url from env file
+# object in charge of communicating with the database. 
+engine = create_engine(database_url, echo=True) 
 
 
-# object in charge of communicating with the database. Only one needed for the whole application. 
-engine = create_engine(database_url, echo=True)  # with echo all the sql statements are printed
-
-# take the engine and use it to create all tables in metadata
 def create_db_and_tables():
+    """
+    Creates tables in the database from the data model classes.
+    """
     SQLModel.metadata.create_all(engine)  
 
-"""
-sessions are needed to manage interactions with the database (e.g. queries, insert data)
-each request needs its own session
-"""
 def get_session():
+    """
+    Provides a database session to to manage interactions with the database.
+    """
     with Session(engine) as session:
-        yield session    # yield is used so the session can be closed automatically at the end of the endpoint execution
+        yield session    # Closes session automatically when no longer needed. 
