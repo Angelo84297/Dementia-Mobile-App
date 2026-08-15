@@ -22,7 +22,7 @@ genai_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 @app.on_event("startup")
 async def on_startup(): 
     """
-    Creates tables in the database from the data model classes.  
+    Creates tables in the database using data model classes.  
     This endpoint is currently deprecated and will be replaced in 
     future versions. 
     """
@@ -393,7 +393,7 @@ def build_gemini_payload(
 
     Args: 
         patient_id: the ID of the patient.
-        timezone_name: IANA timezone name (e.g. Europe\London).
+        timezone_name: IANA timezone name (e.g. Europe/London).
         session: the current database session.
 
     Returns:

@@ -2,20 +2,37 @@ import logging
 import requests
 
 # Helper to fetch data points
-def fetch_data_points(url, headers, params): 
+def fetch_data_points(
+        url: str , headers: dict[str, str] , 
+        params: dict[str, str | int]) -> list: 
+    """
+    Fetches data points from Google Health API. 
+
+    Args: 
+        url: The API endpoint from which data points are fetched. 
+        headers: The headers containing the access token.
+        params: Query parameters used to filter the results. 
+
+    Returns: 
+        A list contaning the datapoints returned by the API. 
+
+    Raises: 
+        requests.RequestException: In case the API request fails. 
+    """
 
     try : 
         response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()  # jump to except in case of error
+        response.raise_for_status()  
         parsed = response.json()  # parsed here to avoid parsing twice later
-
-        data_points = parsed.get("dataPoints", [])  # an empty list can be returned in case the value doesn't exist
-        next_page_token = parsed.get("nextPageToken")    # if != None it means there is more data to be fetched. 
+        # return an empty list in case no dataPoints are found
+        data_points = parsed.get("dataPoints", []) 
+        next_page_token = parsed.get("nextPageToken")   
 
         # Keep sending get requests while a nextPageToken is returned. 
-        # Since Google limits the amount of data sent for each request, this ensures all data is fetched. 
+        # Ensures all data is fetched despite Google Health limit per request. 
         while next_page_token: 
-            params["pageToken"] = next_page_token  # tell cursor where to continue fetching data
+            # tell cursor where to continue fetching data
+            params["pageToken"] = next_page_token 
             response = requests.get(url, headers=headers, params=params)
             response.raise_for_status()
             parsed = response.json()   
