@@ -27,9 +27,7 @@ export default function HealthScreen() {
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>Health overview</Text>
                 </View>
-                {/* Cards Grid */}
                 <View style={styles.grid}>
-                    {/* Sleep card */}
                     <View style={[styles.card, { backgroundColor: '#E0E0FF' }]}>
                         <View style={styles.cardRow}>
                             <Ionicons name='moon' size={25} />
