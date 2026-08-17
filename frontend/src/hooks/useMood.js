@@ -26,6 +26,10 @@ export function useMood() {
     }
   };
 
+  useEffect(() => {
+    loadMoodList();
+  }, []);
+
   /**
    * Records a mood value and refreshes the mood list in case of success. 
    * 
@@ -36,14 +40,9 @@ export function useMood() {
     const success = await updateMood(PATIENT_ID, moodValue);
 
     if (success) {
-      loadMoodList(); // refresh UI 
-      return success
+      await loadMoodList(); // refresh UI 
     };
-
-    useEffect(() => {
-      loadMoodList();
-    }, []);
-
+    return success
   }
 
   return {

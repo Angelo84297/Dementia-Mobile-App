@@ -12,7 +12,7 @@ jest.mock("../config/config", () => ({
 
 }));
 
-// mocks server response
+
 test("updateMood sends fetch POST request correctly and returns true", async () => {
     fetch.mockResolvedValue({
         ok: true,

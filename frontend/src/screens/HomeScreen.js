@@ -65,7 +65,7 @@ export default function HomeScreen() {
   const { moodList, recordMood } = useMood()
 
   /**
-   * Records the selected mood and displaying the result to the user. 
+   * Records the selected mood and displays the result to the user. 
    * 
    * @param {number} moodValue - the mood value between 1 (Awful) and 5 (Super). 
    */
